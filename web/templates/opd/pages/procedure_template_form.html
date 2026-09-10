@@ -1,0 +1,42 @@
+{{define "title"}}{{if .Template.ID}}Edit Procedure{{else}}New Procedure{{end}} — Chikitsalaya{{end}}
+{{define "content"}}
+<h1>{{if .Template.ID}}Edit Procedure{{else}}New Procedure{{end}}</h1>
+
+{{if .Error}}
+<div role="alert" data-variant="error">{{.Error}}</div>
+{{end}}
+
+<article class="card">
+<form method="post" action="{{.Action}}">
+    <div class="hstack">
+        <label data-field>
+            Name
+            <input type="text" name="name" value="{{.Template.Name}}" required>
+        </label>
+        <label data-field>
+            Department
+            <input type="text" name="department" value="{{.Template.Department}}">
+        </label>
+        <label data-field>
+            Price (optional)
+            <input type="number" step="0.01" name="price" value="{{if .Template.Price}}{{.Template.Price}}{{end}}">
+        </label>
+    </div>
+
+    <label data-field>
+        Description
+        <textarea name="description">{{.Template.Description}}</textarea>
+    </label>
+
+    <label data-field>
+        <input type="checkbox" name="is_active" {{if or (not .Template.ID) .Template.IsActive}}checked{{end}}>
+        Active
+    </label>
+
+    <menu class="buttons">
+        <li><button type="submit">Save</button></li>
+        <li><a href="/admin/procedures" class="button outline">Cancel</a></li>
+    </menu>
+</form>
+</article>
+{{end}}

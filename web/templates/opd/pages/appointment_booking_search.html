@@ -1,0 +1,13 @@
+{{define "title"}}Book Appointment — Chikitsalaya{{end}}
+{{define "content"}}
+<h1>Book Appointment</h1>
+<p>Step 1 of 2 — find the patient, or add a new one, then you'll pick a doctor, date, and time.</p>
+
+{{if .Error}}
+<div role="alert" data-variant="error">{{.Error}}</div>
+{{end}}
+
+<article class="card">
+    {{template "patient_search_or_create" .PatientWidget}}
+</article>
+{{end}}

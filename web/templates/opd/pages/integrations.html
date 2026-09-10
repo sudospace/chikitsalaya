@@ -1,0 +1,119 @@
+{{define "title"}}Integrations — Chikitsalaya{{end}}
+{{define "content"}}
+<h1>Integrations</h1>
+<p>Configure this clinic's own SMS, email, and payment settings. Each is independent — set up only what you need.</p>
+
+{{if .Saved}}<div role="alert" data-variant="success">Saved.</div>{{end}}
+{{if .Error}}<div role="alert" data-variant="error">{{.Error}}</div>{{end}}
+
+<article class="card">
+    <header><h3>SMS (used for online-booking OTP)</h3></header>
+    <p><small>Only one real mechanism is supported today: a generic webhook — point it at any HTTP endpoint that
+        accepts a JSON body of <code>{"to": "...", "message": "..."}</code> (your own relay, or a gateway that
+        offers a plain webhook). Leave inactive to keep using dev-mode, which just logs the code to the server
+        console instead of sending it.</small></p>
+    <form method="post" action="/admin/integrations/sms">
+        <div data-field>
+            <label>Provider</label>
+            <select name="provider" aria-label="SMS provider">
+                <option value="none" {{if ne .SMS.Provider "webhook"}}selected{{end}}>None (dev-mode console log)</option>
+                <option value="webhook" {{if eq .SMS.Provider "webhook"}}selected{{end}}>Custom HTTP webhook</option>
+            </select>
+        </div>
+        <label data-field>
+            Webhook URL
+            <input type="url" name="webhook_url" value="{{index .SMS.Config "webhook_url"}}" placeholder="https://example.com/send-sms">
+        </label>
+        <div class="hstack">
+            <label data-field>
+                Auth header name (optional)
+                <input type="text" name="auth_header_name" value="{{index .SMS.Config "auth_header_name"}}" placeholder="e.g. Authorization">
+            </label>
+            <label data-field>
+                Auth header value (optional)
+                <input type="text" name="auth_header_value" value="{{index .SMS.Config "auth_header_value"}}">
+            </label>
+        </div>
+        <label data-field>
+            Sender ID (optional, provider-dependent)
+            <input type="text" name="sender_id" value="{{index .SMS.Config "sender_id"}}">
+        </label>
+        <label data-field>
+            <input type="checkbox" name="is_active" {{if .SMS.IsActive}}checked{{end}}>
+            Active (send real OTPs through this webhook instead of dev-mode)
+        </label>
+        <button type="submit">Save SMS settings</button>
+    </form>
+</article>
+
+<article class="card">
+    <header><h3>Email</h3></header>
+    <p><small>No feature in the app sends email yet — this stores SMTP credentials for when one does
+        (e.g. appointment confirmations).</small></p>
+    <form method="post" action="/admin/integrations/email">
+        <div data-field>
+            <label>Provider</label>
+            <select name="provider" aria-label="Email provider">
+                <option value="none" {{if ne .Email.Provider "smtp"}}selected{{end}}>None</option>
+                <option value="smtp" {{if eq .Email.Provider "smtp"}}selected{{end}}>SMTP</option>
+            </select>
+        </div>
+        <div class="hstack">
+            <label data-field>
+                SMTP host
+                <input type="text" name="smtp_host" value="{{index .Email.Config "smtp_host"}}">
+            </label>
+            <label data-field>
+                SMTP port
+                <input type="text" name="smtp_port" value="{{index .Email.Config "smtp_port"}}" placeholder="587">
+            </label>
+        </div>
+        <div class="hstack">
+            <label data-field>
+                Username
+                <input type="text" name="username" value="{{index .Email.Config "username"}}">
+            </label>
+            <label data-field>
+                Password
+                <input type="password" name="password" value="{{index .Email.Config "password"}}">
+            </label>
+        </div>
+        <label data-field>
+            From address
+            <input type="email" name="from_address" value="{{index .Email.Config "from_address"}}">
+        </label>
+        <label data-field>
+            <input type="checkbox" name="is_active" {{if .Email.IsActive}}checked{{end}}>
+            Active
+        </label>
+        <button type="submit">Save email settings</button>
+    </form>
+</article>
+
+<article class="card">
+    <header><h3>Payment</h3></header>
+    <p><small>No billing/payment-collection flow exists in the app yet (consultation fees are just captured as an
+        amount + paid/unpaid flag) — this only stores gateway credentials for whenever that's built.</small></p>
+    <form method="post" action="/admin/integrations/payment">
+        <label data-field>
+            Provider
+            <input type="text" name="provider" value="{{if ne .Payment.Provider "none"}}{{.Payment.Provider}}{{end}}" placeholder="e.g. razorpay">
+        </label>
+        <div class="hstack">
+            <label data-field>
+                Key ID
+                <input type="text" name="key_id" value="{{index .Payment.Config "key_id"}}">
+            </label>
+            <label data-field>
+                Key secret
+                <input type="password" name="key_secret" value="{{index .Payment.Config "key_secret"}}">
+            </label>
+        </div>
+        <label data-field>
+            <input type="checkbox" name="is_active" {{if .Payment.IsActive}}checked{{end}}>
+            Active
+        </label>
+        <button type="submit">Save payment settings</button>
+    </form>
+</article>
+{{end}}

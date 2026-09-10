@@ -1,0 +1,76 @@
+{{define "title"}}Set Up: Practitioners — Chikitsalaya{{end}}
+{{define "content"}}
+<h1>Add your practitioners</h1>
+<p>Add each doctor, and optionally their weekly schedule right away — you can always add more later from Practitioners.</p>
+
+{{if .Error}}
+<div role="alert" data-variant="error">{{.Error}}</div>
+{{end}}
+
+{{range .Practitioners}}
+<article class="card">
+    <header><h3>{{.Practitioner.FullName}}</h3></header>
+    <table>
+        <thead><tr><th>Day</th><th>Start</th><th>End</th><th>Slot</th></tr></thead>
+        <tbody>
+            {{range .Schedules}}
+            <tr>
+                <td>
+                    {{if eq .DayOfWeek 0}}Sunday{{end}}{{if eq .DayOfWeek 1}}Monday{{end}}{{if eq .DayOfWeek 2}}Tuesday{{end}}
+                    {{if eq .DayOfWeek 3}}Wednesday{{end}}{{if eq .DayOfWeek 4}}Thursday{{end}}{{if eq .DayOfWeek 5}}Friday{{end}}{{if eq .DayOfWeek 6}}Saturday{{end}}
+                </td>
+                <td>{{.StartTime}}</td>
+                <td>{{.EndTime}}</td>
+                <td>{{.SlotDurationMinutes}} min</td>
+            </tr>
+            {{else}}
+            <tr><td colspan="4">No schedule added yet.</td></tr>
+            {{end}}
+        </tbody>
+    </table>
+    <form method="post" action="/onboarding/practitioners/{{.Practitioner.ID}}/schedules">
+        <div class="hstack">
+            <div data-field>
+                <label>Day</label>
+                <select name="day_of_week" aria-label="Day of week" required>
+                    <option value="0">Sunday</option>
+                    <option value="1" selected>Monday</option>
+                    <option value="2">Tuesday</option>
+                    <option value="3">Wednesday</option>
+                    <option value="4">Thursday</option>
+                    <option value="5">Friday</option>
+                    <option value="6">Saturday</option>
+                </select>
+            </div>
+            <label data-field>Start<input type="time" name="start_time" required></label>
+            <label data-field>End<input type="time" name="end_time" required></label>
+            <label data-field>Slot (min)<input type="number" name="slot_duration_minutes" value="15" min="5" step="5" required></label>
+            <div data-field><label>&nbsp;</label><button type="submit" class="small">Add schedule</button></div>
+        </div>
+    </form>
+</article>
+{{end}}
+
+<article class="card">
+    <header><h3>Add a practitioner</h3></header>
+    <form method="post" action="/onboarding/practitioners">
+        <div class="hstack">
+            <label data-field>Full name<input type="text" name="full_name" required></label>
+            <label data-field>Qualification<input type="text" name="qualification" placeholder="e.g. MBBS, MD"></label>
+            <label data-field>Specialization<input type="text" name="specialization"></label>
+        </div>
+        <div class="hstack">
+            <label data-field>Phone<input type="tel" name="phone"></label>
+            <label data-field>Email<input type="email" name="email"></label>
+        </div>
+        <button type="submit">Add practitioner</button>
+    </form>
+</article>
+
+<menu class="buttons">
+    <li><a href="/onboarding/drugs" class="button">Next: Drugs</a></li>
+</menu>
+<form method="post" action="/onboarding/skip">
+    <button type="submit" class="ghost small">Skip setup for now</button>
+</form>
+{{end}}

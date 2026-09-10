@@ -1,0 +1,99 @@
+{{define "title"}}Clinic Settings — Chikitsalaya{{end}}
+{{define "content"}}
+<h1>Clinic Settings</h1>
+
+{{if .Error}}
+<div role="alert" data-variant="error">{{.Error}}</div>
+{{end}}
+
+<article class="card">
+<form method="post" action="{{.Action}}" enctype="multipart/form-data">
+    <label data-field>
+        Clinic name
+        <input type="text" name="display_name" value="{{.Company.Name}}" required>
+    </label>
+
+    <label data-field>
+        Address
+        <textarea name="address">{{.Company.Address}}</textarea>
+    </label>
+
+    <div class="hstack">
+        <label data-field>
+            Phone
+            <input type="tel" name="phone" value="{{.Company.Phone}}">
+        </label>
+        <label data-field>
+            Email
+            <input type="email" name="email" value="{{.Company.Email}}">
+        </label>
+        <label data-field>
+            Registration no.
+            <input type="text" name="registration_no" value="{{.Company.RegistrationNo}}">
+        </label>
+    </div>
+
+    <label data-field>
+        Logo (used as the app header image and browser tab icon)
+        <input type="file" name="logo" accept="image/png,image/jpeg,image/gif,image/webp">
+        {{if .Company.LogoPath}}<span data-hint>Current logo: {{.Company.LogoPath}} — choose a file to replace it.</span>{{end}}
+    </label>
+
+    <div data-field>
+        <label>Letterhead (shown at the top of printed prescriptions)</label>
+        <div class="hstack">
+            <label>
+                <input type="radio" name="letterhead_mode" value="html" data-letterhead-mode
+                       {{if ne .Company.LetterheadMode "image"}}checked{{end}}>
+                Custom HTML
+            </label>
+            <label>
+                <input type="radio" name="letterhead_mode" value="image" data-letterhead-mode
+                       {{if eq .Company.LetterheadMode "image"}}checked{{end}}>
+                Upload an image
+            </label>
+        </div>
+    </div>
+
+    <div data-letterhead-panel="html" {{if eq .Company.LetterheadMode "image"}}hidden{{end}}>
+        <label data-field>
+            Letterhead HTML
+            <textarea name="letterhead_html" rows="4">{{.Company.LetterheadHTML}}</textarea>
+        </label>
+        <p><small>Leave blank for a plain text header (name, address, phone).</small></p>
+    </div>
+
+    <div data-letterhead-panel="image" {{if ne .Company.LetterheadMode "image"}}hidden{{end}}>
+        <label data-field>
+            Letterhead image
+            <input type="file" name="letterhead_image" accept="image/png,image/jpeg,image/gif,image/webp">
+        </label>
+        {{if .Company.LetterheadImagePath}}<span data-hint>Current letterhead: {{.Company.LetterheadImagePath}} — choose a file to replace it.</span>{{end}}
+    </div>
+
+    <label data-field>
+        Footer text
+        <textarea name="footer_text">{{.Company.FooterText}}</textarea>
+    </label>
+
+    <div class="hstack">
+        <label data-field>
+            First consultation fee (optional)
+            <input type="number" name="first_consultation_fee" step="0.01" min="0"
+                   value="{{if .Company.FirstConsultationFee}}{{.Company.FirstConsultationFee}}{{end}}">
+        </label>
+        <label data-field>
+            Follow-up fee (optional)
+            <input type="number" name="follow_up_fee" step="0.01" min="0"
+                   value="{{if .Company.FollowUpFee}}{{.Company.FollowUpFee}}{{end}}">
+        </label>
+    </div>
+    <p><small>Reception picks one of these (or a custom amount) when booking or setting an appointment's fee.</small></p>
+
+    <menu class="buttons">
+        <li><button type="submit">Save</button></li>
+        <li><a href="{{.CancelURL}}" class="button outline">Cancel</a></li>
+    </menu>
+</form>
+</article>
+{{end}}

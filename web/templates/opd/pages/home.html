@@ -1,0 +1,126 @@
+{{define "title"}}Chikitsalaya — Home{{end}}
+{{define "content"}}
+
+<div class="page-header">
+    <h1>{{if .Company}}{{.Company.Name}}{{else}}Welcome back{{end}}</h1>
+    <a href="/appointments/new" class="button">Book Appointment</a>
+</div>
+
+<div class="stat-row">
+    <div class="stat-tile">
+        <span class="stat-value">{{.Stats.Total}}</span>
+        <span class="stat-label">Today's appointments</span>
+    </div>
+    <div class="stat-tile{{if gt .Stats.NeedsAttention 0}} stat-tile-warning{{end}}">
+        <span class="stat-value">{{.Stats.NeedsAttention}}</span>
+        <span class="stat-label">Needs confirmation</span>
+    </div>
+    <div class="stat-tile stat-tile-primary">
+        <span class="stat-value">{{.Stats.CheckedIn}}</span>
+        <span class="stat-label">Checked in</span>
+    </div>
+    <div class="stat-tile stat-tile-success">
+        <span class="stat-value">{{.Stats.Completed}}</span>
+        <span class="stat-label">Completed</span>
+    </div>
+</div>
+
+<article class="card">
+    <header class="page-header" style="margin-block-end: 0.75rem;">
+        <h3>{{if .OwnScheduleOnly}}My appointments today{{else}}Today's appointments{{end}}</h3>
+        <a href="/appointments">View full day &rarr;</a>
+    </header>
+    {{if .TodayPreview}}
+    <table>
+        <thead>
+            <tr><th>Time</th><th>Patient</th><th>Doctor</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+            {{range .TodayPreview}}
+            <tr>
+                <td>{{.ScheduledAt.Format "15:04"}}</td>
+                <td>{{.PatientName}}</td>
+                <td>{{.PractitionerName}}</td>
+                <td>{{template "appointment_status_badge" .Status}}{{if eq .Source "online"}} <small>(online)</small>{{end}}</td>
+            </tr>
+            {{end}}
+        </tbody>
+    </table>
+    {{if .MoreToday}}
+    <p><small><a href="/appointments">+{{.MoreToday}} more today &rarr;</a></small></p>
+    {{end}}
+    {{else}}
+    <p>No appointments scheduled for today.</p>
+    {{end}}
+</article>
+
+<h2>Quick access</h2>
+<div class="module-grid">
+    <a class="module-tile" href="/patients">
+        <span class="module-tile-icon">🧑‍🤝‍🧑</span>
+        <strong>Patients</strong>
+        <span>Search, add, and view patient records</span>
+    </a>
+    <a class="module-tile" href="/appointments">
+        <span class="module-tile-icon">📅</span>
+        <strong>Appointments</strong>
+        <span>Day view, check-in, booking</span>
+    </a>
+    <a class="module-tile" href="/quick-prescription">
+        <span class="module-tile-icon">⚡</span>
+        <strong>Quick Prescription</strong>
+        <span>Walk-in Rx — patient, drugs, print</span>
+    </a>
+    <a class="module-tile" href="/practitioners">
+        <span class="module-tile-icon">🩺</span>
+        <strong>Practitioners</strong>
+        <span>Doctors and their schedules</span>
+    </a>
+</div>
+
+{{if .IsAdmin}}
+<h2>Clinic setup</h2>
+<div class="module-grid module-grid-compact">
+    <a class="module-tile module-tile-compact" href="/admin/company">
+        <span class="module-tile-icon">🏥</span>
+        <strong>My Clinic</strong>
+        <span>Branding, logo, fee schedule</span>
+    </a>
+    <a class="module-tile module-tile-compact" href="/admin/integrations">
+        <span class="module-tile-icon">🔌</span>
+        <strong>Integrations</strong>
+        <span>SMS, email, payment settings</span>
+    </a>
+    <a class="module-tile module-tile-compact" href="/admin/service-units">
+        <span class="module-tile-icon">🏷️</span>
+        <strong>Service Units</strong>
+        <span>Rooms and consultation units</span>
+    </a>
+    <a class="module-tile module-tile-compact" href="/admin/drugs">
+        <span class="module-tile-icon">💊</span>
+        <strong>Drugs</strong>
+        <span>Medication catalog and stock</span>
+    </a>
+    <a class="module-tile module-tile-compact" href="/admin/lookup-values">
+        <span class="module-tile-icon">📋</span>
+        <strong>Dosage/Duration</strong>
+        <span>Prescription picklists</span>
+    </a>
+    <a class="module-tile module-tile-compact" href="/admin/lab-tests">
+        <span class="module-tile-icon">🧪</span>
+        <strong>Lab Tests</strong>
+        <span>Lab test catalog</span>
+    </a>
+    <a class="module-tile module-tile-compact" href="/admin/procedures">
+        <span class="module-tile-icon">🩹</span>
+        <strong>Procedures</strong>
+        <span>Procedure catalog</span>
+    </a>
+    <a class="module-tile module-tile-compact" href="/admin/users">
+        <span class="module-tile-icon">👤</span>
+        <strong>Users</strong>
+        <span>Doctor and receptionist logins</span>
+    </a>
+</div>
+{{end}}
+{{end}}

@@ -1,0 +1,66 @@
+{{define "title"}}{{if .Drug.ID}}Edit Drug{{else}}New Drug{{end}} — Chikitsalaya{{end}}
+{{define "content"}}
+<h1>{{if .Drug.ID}}Edit Drug{{else}}New Drug{{end}}</h1>
+
+{{if .Error}}
+<div role="alert" data-variant="error">{{.Error}}</div>
+{{end}}
+
+<article class="card">
+<form method="post" action="{{.Action}}">
+    <div class="hstack">
+        <label data-field>
+            Name
+            <input type="text" name="name" value="{{.Drug.Name}}" required>
+        </label>
+        <label data-field>
+            Generic name
+            <input type="text" name="generic_name" value="{{.Drug.GenericName}}">
+        </label>
+    </div>
+
+    <div class="hstack">
+        <label data-field>
+            Form
+            <input type="text" name="form" value="{{.Drug.Form}}" placeholder="e.g. Tablet, Syrup">
+        </label>
+        <label data-field>
+            Strength
+            <input type="text" name="strength" value="{{.Drug.Strength}}" placeholder="e.g. 500mg">
+        </label>
+        <label data-field>
+            Unit
+            <input type="text" name="unit" value="{{.Drug.Unit}}" placeholder="e.g. tablets, ml">
+        </label>
+    </div>
+
+    <div class="hstack">
+        {{if not .Drug.ID}}
+        <label data-field>
+            Opening stock
+            <input type="number" step="0.01" name="opening_stock" value="0">
+        </label>
+        {{else}}
+        <div data-field>
+            <label>Current stock</label>
+            <p>{{.Drug.StockQty}} {{.Drug.Unit}} <small>(adjust via stock movements, not this form)</small></p>
+        </div>
+        {{end}}
+        <label data-field>
+            Reorder level (optional)
+            <input type="number" step="0.01" name="reorder_level" value="{{if .Drug.ReorderLevel}}{{.Drug.ReorderLevel}}{{end}}">
+        </label>
+    </div>
+
+    <label data-field>
+        <input type="checkbox" name="is_active" {{if or (not .Drug.ID) .Drug.IsActive}}checked{{end}}>
+        Active
+    </label>
+
+    <menu class="buttons">
+        <li><button type="submit">Save</button></li>
+        <li><a href="/admin/drugs" class="button outline">Cancel</a></li>
+    </menu>
+</form>
+</article>
+{{end}}

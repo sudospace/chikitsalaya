@@ -1,0 +1,39 @@
+{{define "title"}}Set Up: Lab Tests — Chikitsalaya{{end}}
+{{define "content"}}
+<h1>Add your lab tests</h1>
+<p>Add the lab tests you commonly order. You can always add more later from Lab Tests.</p>
+
+{{if .Error}}
+<div role="alert" data-variant="error">{{.Error}}</div>
+{{end}}
+
+<table>
+    <thead><tr><th>Name</th><th>Department</th><th>Sample type</th></tr></thead>
+    <tbody>
+        {{range .Templates}}
+        <tr><td>{{.Name}}</td><td>{{.Department}}</td><td>{{.SampleType}}</td></tr>
+        {{else}}
+        <tr><td colspan="3">No lab tests added yet.</td></tr>
+        {{end}}
+    </tbody>
+</table>
+
+<article class="card">
+    <header><h3>Add a lab test</h3></header>
+    <form method="post" action="/onboarding/lab-tests">
+        <div class="hstack">
+            <label data-field>Name<input type="text" name="name" required></label>
+            <label data-field>Department<input type="text" name="department"></label>
+            <label data-field>Sample type<input type="text" name="sample_type" placeholder="e.g. Blood"></label>
+        </div>
+        <button type="submit">Add lab test</button>
+    </form>
+</article>
+
+<menu class="buttons">
+    <li><a href="/onboarding/procedures" class="button">Next: Procedures</a></li>
+</menu>
+<form method="post" action="/onboarding/skip">
+    <button type="submit" class="ghost small">Skip setup for now</button>
+</form>
+{{end}}

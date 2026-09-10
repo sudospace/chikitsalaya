@@ -1,0 +1,44 @@
+{{define "title"}}Set Up: Drugs — Chikitsalaya{{end}}
+{{define "content"}}
+<h1>Add your medications</h1>
+<p>Add the drugs you commonly prescribe. You can always add more later from Drugs.</p>
+
+{{if .Error}}
+<div role="alert" data-variant="error">{{.Error}}</div>
+{{end}}
+
+<table>
+    <thead><tr><th>Name</th><th>Form</th><th>Strength</th><th>Stock</th></tr></thead>
+    <tbody>
+        {{range .Drugs}}
+        <tr><td>{{.Name}}</td><td>{{.Form}}</td><td>{{.Strength}}</td><td>{{.StockQty}} {{.Unit}}</td></tr>
+        {{else}}
+        <tr><td colspan="4">No drugs added yet.</td></tr>
+        {{end}}
+    </tbody>
+</table>
+
+<article class="card">
+    <header><h3>Add a drug</h3></header>
+    <form method="post" action="/onboarding/drugs">
+        <div class="hstack">
+            <label data-field>Name<input type="text" name="name" required></label>
+            <label data-field>Generic name<input type="text" name="generic_name"></label>
+        </div>
+        <div class="hstack">
+            <label data-field>Form<input type="text" name="form" placeholder="e.g. Tablet"></label>
+            <label data-field>Strength<input type="text" name="strength" placeholder="e.g. 500mg"></label>
+            <label data-field>Unit<input type="text" name="unit" placeholder="e.g. tablets"></label>
+            <label data-field>Opening stock<input type="number" step="0.01" name="opening_stock" value="0"></label>
+        </div>
+        <button type="submit">Add drug</button>
+    </form>
+</article>
+
+<menu class="buttons">
+    <li><a href="/onboarding/lab-tests" class="button">Next: Lab Tests</a></li>
+</menu>
+<form method="post" action="/onboarding/skip">
+    <button type="submit" class="ghost small">Skip setup for now</button>
+</form>
+{{end}}

@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chikitsalaya</title>
+<meta name="description" content="A self-hosted clinic management system — patients, scheduling, and prescriptions.">
+<link rel="icon" href="data:,">
+<style>
+  :root {
+    color-scheme: light dark;
+    --primary: light-dark(#b15e2e, #e8a868);
+    --primary-foreground: light-dark(#fffaf5, #3a2415);
+    --background: light-dark(#fbf6f0, #18130f);
+    --card: light-dark(#ffffff, #211a15);
+    --border: light-dark(#e6d7c8, #4a3c30);
+    --foreground: light-dark(#241c17, #f5ede4);
+    --muted: light-dark(#7a6a5c, #b8a898);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--background);
+    color: var(--foreground);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 0 1.5rem; }
+
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.5rem 0;
+  }
+  .brand { font-weight: 700; font-size: 1.125rem; letter-spacing: -0.01em; }
+  nav a {
+    color: var(--foreground);
+    text-decoration: none;
+    font-size: 0.9rem;
+    margin-left: 1.5rem;
+  }
+  nav a:hover { color: var(--primary); }
+
+  .hero {
+    padding: 4rem 0 3rem;
+    text-align: center;
+  }
+  .hero h1 {
+    font-size: 2.5rem;
+    margin: 0 0 0.75rem;
+    letter-spacing: -0.02em;
+  }
+  .hero p {
+    color: var(--muted);
+    font-size: 1.125rem;
+    max-width: 34rem;
+    margin: 0 auto 2rem;
+  }
+  .actions { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; }
+  .button {
+    display: inline-block;
+    padding: 0.65rem 1.4rem;
+    border-radius: 0.5rem;
+    text-decoration: none;
+    font-size: 0.95rem;
+    font-weight: 600;
+    border: 1px solid var(--border);
+  }
+  .button.primary {
+    background: var(--primary);
+    color: var(--primary-foreground);
+    border-color: var(--primary);
+  }
+  .button.outline { color: var(--foreground); }
+
+  .features {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    padding: 2rem 0 4rem;
+    border-top: 1px solid var(--border);
+  }
+  .feature h3 { font-size: 1rem; margin: 0 0 0.35rem; }
+  .feature p { color: var(--muted); font-size: 0.9rem; margin: 0; line-height: 1.5; }
+
+  .shot {
+    width: 100%;
+    border-radius: 0.75rem;
+    border: 1px solid var(--border);
+    box-shadow: 0 12px 32px -16px rgb(0 0 0 / 0.25);
+    display: block;
+    margin: 0 0 2rem;
+  }
+
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 1.5rem 0 3rem;
+    color: var(--muted);
+    font-size: 0.85rem;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  footer a { color: inherit; }
+
+  @media (max-width: 640px) {
+    .features { grid-template-columns: 1fr; }
+    .hero h1 { font-size: 2rem; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <span class="brand">Chikitsalaya</span>
+  </header>
+
+  <section class="hero">
+    <h1>Run your clinic. Own your data.</h1>
+    <p>A self-hosted clinic management system — patients, scheduling, consultations, and prescriptions.</p>
+    <img class="shot" src="images/dashboard.png" alt="Chikitsalaya dashboard" loading="lazy">
+    <div class="actions">
+      <a href="https://github.com/sudospace/chikitsalaya" class="button primary">View on GitHub</a>
+    </div>
+  </section>
+
+  <section class="features">
+    <div class="feature">
+      <h3>Patients &amp; scheduling</h3>
+      <p>Search, book, and manage appointments — in person or online.</p>
+    </div>
+    <div class="feature">
+      <h3>Consultations</h3>
+      <p>Vitals, diagnoses, prescriptions, and lab orders in one workspace.</p>
+    </div>
+    <div class="feature">
+      <h3>Self-hosted</h3>
+      <p>One Go binary, one Postgres database. Your server, your data.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Chikitsalaya · AGPL-3.0</span>
+    <a href="https://github.com/sudospace/chikitsalaya">github.com/sudospace/chikitsalaya</a>
+  </footer>
+
+</div>
+</body>
+</html>

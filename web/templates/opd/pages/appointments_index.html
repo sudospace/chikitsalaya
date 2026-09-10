@@ -1,0 +1,109 @@
+{{define "title"}}Appointments — Chikitsalaya{{end}}
+{{define "content"}}
+<div class="page-header">
+    <h1>Appointments</h1>
+    <a href="/appointments/new" class="button">Book Appointment</a>
+</div>
+
+<form method="get" action="/appointments">
+    <div class="hstack">
+        <div data-field>
+            <label>Practitioner</label>
+            <select name="practitioner_id" aria-label="Practitioner" required>
+                <option value="">Select a practitioner</option>
+                {{range .Practitioners}}
+                <option value="{{.ID}}" {{if eq $.PractitionerID .ID}}selected{{end}}>{{.FullName}}</option>
+                {{end}}
+            </select>
+        </div>
+        <label data-field>
+            Date
+            <input type="date" name="date" value="{{.Date}}">
+        </label>
+        <div data-field>
+            <label>&nbsp;</label>
+            <button type="submit">View day</button>
+        </div>
+    </div>
+</form>
+
+{{if .Practitioner}}
+<article class="card">
+    <header><h3>{{.Practitioner.FullName}} — {{.Date}}</h3></header>
+    <table>
+        <thead>
+            <tr>
+                <th>Time</th>
+                <th>Patient</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Fee</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {{range .Appointments}}
+            <tr>
+                <td>{{.ScheduledAt.Format "15:04"}}</td>
+                <td>{{.PatientName}}</td>
+                <td>{{.AppointmentType}}</td>
+                <td>{{template "appointment_status_badge" .Status}}{{if eq .Source "online"}} <small>(online)</small>{{end}}</td>
+                <td>
+                    <form method="post" action="/appointments/{{.ID}}/fee" class="hstack" style="gap: 0.35rem; align-items: center;">
+                        <select data-fee-type aria-label="Fee type" style="width: 5.5rem;"
+                                data-first-fee="{{if $.Company.FirstConsultationFee}}{{$.Company.FirstConsultationFee}}{{end}}"
+                                data-followup-fee="{{if $.Company.FollowUpFee}}{{$.Company.FollowUpFee}}{{end}}">
+                            <option value="custom">Custom</option>
+                            {{if $.Company.FirstConsultationFee}}<option value="first" title="First consultation">First</option>{{end}}
+                            {{if $.Company.FollowUpFee}}<option value="followup" title="Follow-up">Follow-up</option>{{end}}
+                        </select>
+                        <input type="number" name="fee_amount" step="0.01" min="0" style="width: 5.5rem;"
+                               value="{{if .FeeAmount}}{{.FeeAmount}}{{end}}" aria-label="Fee amount" data-fee-amount>
+                        <label style="white-space: nowrap;">
+                            <input type="checkbox" name="fee_paid" {{if .FeePaid}}checked{{end}}> Paid
+                        </label>
+                        <button type="submit" class="small outline">Save</button>
+                    </form>
+                </td>
+                <td>
+                    {{if eq .Status "requested"}}
+                    <form method="post" action="/appointments/{{.ID}}/status" class="inline-form">
+                        <input type="hidden" name="status" value="scheduled">
+                        <button type="submit" class="small">Confirm</button>
+                    </form>
+                    <form method="post" action="/appointments/{{.ID}}/status" class="inline-form">
+                        <input type="hidden" name="status" value="cancelled">
+                        <button type="submit" class="small outline" data-variant="danger">Reject</button>
+                    </form>
+                    {{else if eq .Status "scheduled"}}
+                    <form method="post" action="/appointments/{{.ID}}/status" class="inline-form">
+                        <input type="hidden" name="status" value="checked_in">
+                        <button type="submit" class="small outline">Check In</button>
+                    </form>
+                    <form method="post" action="/appointments/{{.ID}}/status" class="inline-form">
+                        <input type="hidden" name="status" value="cancelled">
+                        <button type="submit" class="small outline" data-variant="danger">Cancel</button>
+                    </form>
+                    <form method="post" action="/appointments/{{.ID}}/status" class="inline-form">
+                        <input type="hidden" name="status" value="no_show">
+                        <button type="submit" class="small outline">No-show</button>
+                    </form>
+                    {{else if eq .Status "checked_in"}}
+                    <form method="post" action="/encounters/from-appointment/{{.ID}}" class="inline-form">
+                        <button type="submit" class="small">Start Consultation</button>
+                    </form>
+                    <form method="post" action="/appointments/{{.ID}}/status" class="inline-form">
+                        <input type="hidden" name="status" value="completed">
+                        <button type="submit" class="small outline">Complete (no consult)</button>
+                    </form>
+                    {{end}}
+                </td>
+            </tr>
+            {{else}}
+            <tr><td colspan="6">No appointments for this day.</td></tr>
+            {{end}}
+        </tbody>
+    </table>
+</article>
+{{end}}
+{{end}}

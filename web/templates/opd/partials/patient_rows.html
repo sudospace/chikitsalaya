@@ -1,0 +1,13 @@
+{{define "patient_rows"}}
+{{range .}}
+<tr>
+    <td><a href="/patients/{{.ID}}">{{.MRN}}</a></td>
+    <td>{{.FirstName}} {{.LastName}}</td>
+    <td>{{.Sex}}</td>
+    <td>{{.Phone}}</td>
+    <td>{{.BloodGroup}}</td>
+</tr>
+{{else}}
+<tr><td colspan="5">No patients found.</td></tr>
+{{end}}
+{{end}}

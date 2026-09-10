@@ -1,0 +1,37 @@
+{{define "title"}}{{.FirstName}} {{.LastName}} — Chikitsalaya{{end}}
+{{define "content"}}
+<div class="page-header">
+    <h1>{{.FirstName}} {{.LastName}}</h1>
+    <div>
+        <a href="/appointments/new?patient_id={{.ID}}" class="button">Book Appointment</a>
+        <a href="/patients/{{.ID}}/history" class="button outline">History</a>
+        <a href="/patients/{{.ID}}/edit" class="button outline">Edit</a>
+    </div>
+</div>
+
+<article class="card">
+    <dl>
+        <dt>MRN</dt><dd>{{.MRN}}</dd>
+        <dt>Age</dt><dd>{{if .Age}}{{.Age}}{{else}}—{{end}}</dd>
+        <dt>Sex</dt><dd>{{if .Sex}}{{.Sex}}{{else}}—{{end}}</dd>
+        <dt>Blood group</dt><dd>{{if .BloodGroup}}{{.BloodGroup}}{{else}}—{{end}}</dd>
+        <dt>Phone</dt><dd>{{if .Phone}}{{.Phone}}{{else}}—{{end}}</dd>
+        <dt>Email</dt><dd>{{if .Email}}{{.Email}}{{else}}—{{end}}</dd>
+        <dt>Address</dt><dd>{{if .Address}}{{.Address}}{{else}}—{{end}}</dd>
+        <dt>Emergency contact</dt>
+        <dd>{{if .EmergencyContactName}}{{.EmergencyContactName}} ({{.EmergencyContactPhone}}){{else}}—{{end}}</dd>
+    </dl>
+</article>
+
+<article class="card">
+    <header><h3>Allergies</h3></header>
+    <p>{{if .Allergies}}{{.Allergies}}{{else}}None recorded.{{end}}</p>
+</article>
+
+<article class="card">
+    <header><h3>Medical history</h3></header>
+    <p>{{if .MedicalHistory}}{{.MedicalHistory}}{{else}}None recorded.{{end}}</p>
+</article>
+
+<p><a href="/patients">&larr; Back to patients</a></p>
+{{end}}

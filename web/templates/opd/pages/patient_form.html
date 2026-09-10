@@ -1,0 +1,91 @@
+{{define "title"}}{{if .Patient.ID}}Edit Patient{{else}}New Patient{{end}} — Chikitsalaya{{end}}
+{{define "content"}}
+<h1>{{if .Patient.ID}}Edit Patient{{else}}New Patient{{end}}</h1>
+
+{{if .Error}}
+<div role="alert" data-variant="error">{{.Error}}</div>
+{{end}}
+
+<article class="card">
+<form method="post" action="{{.Action}}">
+    <div class="hstack">
+        <label data-field>
+            First name
+            <input type="text" name="first_name" value="{{.Patient.FirstName}}" required>
+        </label>
+        <label data-field>
+            Last name
+            <input type="text" name="last_name" value="{{.Patient.LastName}}">
+        </label>
+    </div>
+
+    <div class="hstack">
+        <label data-field>
+            Age
+            <input type="number" name="age" min="0" max="150" value="{{if .Patient.Age}}{{.Patient.Age}}{{end}}">
+        </label>
+        <div data-field>
+            <label>Sex</label>
+            <select name="sex" aria-label="Sex">
+                <option value="" {{if eq .Patient.Sex ""}}selected{{end}}>Select</option>
+                <option value="male" {{if eq .Patient.Sex "male"}}selected{{end}}>Male</option>
+                <option value="female" {{if eq .Patient.Sex "female"}}selected{{end}}>Female</option>
+                <option value="other" {{if eq .Patient.Sex "other"}}selected{{end}}>Other</option>
+            </select>
+        </div>
+        <div data-field>
+            <label>Blood group</label>
+            <select name="blood_group" aria-label="Blood group">
+                <option value="" {{if eq .Patient.BloodGroup ""}}selected{{end}}>Unknown</option>
+                {{$current := .Patient.BloodGroup}}
+                {{range .BloodGroups}}
+                <option value="{{.}}" {{if eq $current .}}selected{{end}}>{{.}}</option>
+                {{end}}
+            </select>
+        </div>
+    </div>
+
+    <div class="hstack">
+        <label data-field>
+            Phone
+            <input type="tel" name="phone" value="{{.Patient.Phone}}">
+        </label>
+        <label data-field>
+            Email
+            <input type="email" name="email" value="{{.Patient.Email}}">
+        </label>
+    </div>
+
+    <label data-field>
+        Address
+        <textarea name="address">{{.Patient.Address}}</textarea>
+    </label>
+
+    <div class="hstack">
+        <label data-field>
+            Emergency contact name
+            <input type="text" name="emergency_contact_name" value="{{.Patient.EmergencyContactName}}">
+        </label>
+        <label data-field>
+            Emergency contact phone
+            <input type="tel" name="emergency_contact_phone" value="{{.Patient.EmergencyContactPhone}}">
+        </label>
+    </div>
+
+    <label data-field>
+        Allergies
+        <textarea name="allergies">{{.Patient.Allergies}}</textarea>
+    </label>
+
+    <label data-field>
+        Medical history
+        <textarea name="medical_history">{{.Patient.MedicalHistory}}</textarea>
+    </label>
+
+    <menu class="buttons">
+        <li><button type="submit">Save</button></li>
+        <li><a href="{{if .Patient.ID}}/patients/{{.Patient.ID}}{{else}}/patients{{end}}" class="button outline">Cancel</a></li>
+    </menu>
+</form>
+</article>
+{{end}}

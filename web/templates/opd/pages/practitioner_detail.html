@@ -1,0 +1,101 @@
+{{define "title"}}{{.Practitioner.FullName}} — Chikitsalaya{{end}}
+{{define "content"}}
+<div class="page-header">
+    <h1>{{.Practitioner.FullName}}</h1>
+    <a href="/admin/practitioners-manage/{{.Practitioner.ID}}/edit" class="button outline">Edit</a>
+</div>
+
+<article class="card">
+    <dl>
+        <dt>Qualification</dt><dd>{{if .Practitioner.Qualification}}{{.Practitioner.Qualification}}{{else}}—{{end}}</dd>
+        <dt>Specialization</dt><dd>{{if .Practitioner.Specialization}}{{.Practitioner.Specialization}}{{else}}—{{end}}</dd>
+        <dt>Phone</dt><dd>{{if .Practitioner.Phone}}{{.Practitioner.Phone}}{{else}}—{{end}}</dd>
+        <dt>Email</dt><dd>{{if .Practitioner.Email}}{{.Practitioner.Email}}{{else}}—{{end}}</dd>
+        <dt>Active</dt><dd>{{if .Practitioner.IsActive}}Yes{{else}}No{{end}}</dd>
+    </dl>
+</article>
+
+<article class="card">
+    <header><h3>Weekly schedule</h3></header>
+    <table>
+        <thead>
+            <tr>
+                <th>Day</th>
+                <th>Start</th>
+                <th>End</th>
+                <th>Slot length</th>
+                <th>Room</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {{range .Schedules}}
+            <tr>
+                <td>
+                    {{if eq .DayOfWeek 0}}Sunday{{end}}
+                    {{if eq .DayOfWeek 1}}Monday{{end}}
+                    {{if eq .DayOfWeek 2}}Tuesday{{end}}
+                    {{if eq .DayOfWeek 3}}Wednesday{{end}}
+                    {{if eq .DayOfWeek 4}}Thursday{{end}}
+                    {{if eq .DayOfWeek 5}}Friday{{end}}
+                    {{if eq .DayOfWeek 6}}Saturday{{end}}
+                </td>
+                <td>{{.StartTime}}</td>
+                <td>{{.EndTime}}</td>
+                <td>{{.SlotDurationMinutes}} min</td>
+                <td>{{if .ServiceUnitName}}{{.ServiceUnitName}}{{else}}—{{end}}</td>
+                <td>
+                    <form method="post" action="/admin/practitioners-manage/{{$.Practitioner.ID}}/schedules/{{.ID}}/delete" class="inline-form">
+                        <button type="submit" class="small outline" data-variant="danger">Remove</button>
+                    </form>
+                </td>
+            </tr>
+            {{else}}
+            <tr><td colspan="6">No schedule set yet.</td></tr>
+            {{end}}
+        </tbody>
+    </table>
+
+    <h4>Add a schedule block</h4>
+    <form method="post" action="/admin/practitioners-manage/{{.Practitioner.ID}}/schedules">
+        <div class="hstack">
+            <div data-field>
+                <label>Day</label>
+                <select name="day_of_week" aria-label="Day of week" required>
+                    <option value="0">Sunday</option>
+                    <option value="1" selected>Monday</option>
+                    <option value="2">Tuesday</option>
+                    <option value="3">Wednesday</option>
+                    <option value="4">Thursday</option>
+                    <option value="5">Friday</option>
+                    <option value="6">Saturday</option>
+                </select>
+            </div>
+            <label data-field>
+                Start time
+                <input type="time" name="start_time" required>
+            </label>
+            <label data-field>
+                End time
+                <input type="time" name="end_time" required>
+            </label>
+            <label data-field>
+                Slot length (minutes)
+                <input type="number" name="slot_duration_minutes" value="15" min="5" step="5" required>
+            </label>
+            <div data-field>
+                <label>Room (optional)</label>
+                <select name="service_unit_id" aria-label="Room">
+                    <option value="">None</option>
+                    {{range .ServiceUnits}}
+                    <option value="{{.ID}}">{{.Name}}</option>
+                    {{end}}
+                </select>
+            </div>
+        </div>
+        <button type="submit">Add schedule block</button>
+    </form>
+</article>
+
+<p><a href="/practitioners">&larr; Back to practitioners</a></p>
+{{end}}

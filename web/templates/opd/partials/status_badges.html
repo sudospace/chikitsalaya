@@ -1,0 +1,27 @@
+{{/* Color-coded status pills shared across list/table views. */}}
+
+{{define "appointment_status_badge"}}
+{{if eq . "requested"}}<span class="badge badge-warning">Requested</span>
+{{else if eq . "scheduled"}}<span class="badge badge-primary">Scheduled</span>
+{{else if eq . "checked_in"}}<span class="badge badge-warning">Checked in</span>
+{{else if eq . "completed"}}<span class="badge badge-success">Completed</span>
+{{else if eq . "cancelled"}}<span class="badge badge-muted">Cancelled</span>
+{{else if eq . "no_show"}}<span class="badge badge-danger">No-show</span>
+{{else}}<span class="badge">{{.}}</span>
+{{end}}
+{{end}}
+
+{{define "lab_order_status_badge"}}
+{{if eq . "resulted"}}<span class="badge badge-success">Resulted</span>
+{{else if eq . "collected"}}<span class="badge badge-primary">Collected</span>
+{{else if eq . "ordered"}}<span class="badge badge-muted">Ordered</span>
+{{else}}<span class="badge">{{.}}</span>
+{{end}}
+{{end}}
+
+{{define "procedure_status_badge"}}
+{{if eq . "completed"}}<span class="badge badge-success">Completed</span>
+{{else if eq . "ordered"}}<span class="badge badge-muted">Ordered</span>
+{{else}}<span class="badge">{{.}}</span>
+{{end}}
+{{end}}

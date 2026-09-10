@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Prescription — {{.Encounter.PatientName}}</title>
+    <style>
+        :root { color-scheme: light; }
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+            color: #1a1a1a;
+            margin: 0;
+            background: #e9e9e9;
+        }
+        .sheet {
+            max-width: 780px;
+            margin: 1.5rem auto;
+            padding: 1.75rem 2rem 2.25rem;
+            background: #fff;
+            box-shadow: 0 1px 3px rgb(0 0 0 / .15);
+        }
+        .toolbar {
+            max-width: 780px;
+            margin: 0 auto;
+            padding: 0.75rem 2rem 0;
+        }
+        .toolbar button {
+            font: inherit;
+            padding: 0.5rem 1.1rem;
+            border-radius: 0.4rem;
+            border: 1px solid #333;
+            background: #fff;
+            cursor: pointer;
+        }
+
+        .letterhead { border-bottom: 2px solid #333; padding-bottom: 0.75rem; margin-bottom: 1rem; }
+        .letterhead-image { display: block; max-width: 100%; height: auto; }
+        .plain-header { display: flex; align-items: center; gap: 0.85rem; border-bottom: 2px solid #333; padding-bottom: 0.75rem; margin-bottom: 1rem; }
+        .plain-header img { height: 3rem; width: auto; }
+        .plain-header h1 { margin: 0 0 0.25rem; font-size: 1.4rem; }
+        .plain-header p { margin: 0; color: #555; font-size: 0.88rem; }
+
+        /* Patient (left) / visit (right) meta bar — the two blocks a
+           prescription always leads with, laid out side by side so it
+           reads in one glance instead of a long stacked list. */
+        .meta-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+            padding-bottom: 0.85rem;
+            border-bottom: 1px solid #ccc;
+            font-size: 0.92rem;
+        }
+        .meta-col { min-width: 220px; }
+        .meta-row .name { font-size: 1.05rem; font-weight: 700; margin: 0 0 0.15rem; }
+        .meta-row .sub { color: #444; margin: 0 0 0.15rem; }
+        .meta-col.right { text-align: right; }
+        .allergy-flag {
+            display: inline-block;
+            margin-top: 0.3rem;
+            padding: 0.15rem 0.55rem;
+            border: 1px solid #b91c1c;
+            color: #b91c1c;
+            border-radius: 0.3rem;
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+        }
+
+        .vitals-strip {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0 1.5rem;
+            margin-bottom: 1rem;
+            padding: 0.5rem 0.75rem;
+            background: #f6f6f6;
+            border-radius: 0.3rem;
+            font-size: 0.85rem;
+            color: #333;
+        }
+        .vitals-strip span { white-space: nowrap; }
+        .vitals-strip strong { color: #555; font-weight: 600; }
+
+        h2.section {
+            display: flex;
+            align-items: baseline;
+            gap: 0.4rem;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            color: #333;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 0.3rem;
+            margin: 1.4rem 0 0.6rem;
+        }
+        .rx-mark { font-size: 1.3rem; font-weight: 700; text-transform: none; letter-spacing: 0; }
+
+        .diagnosis-list { margin: 0 0 1rem; padding-left: 1.1rem; font-size: 0.92rem; }
+        .diagnosis-list li { margin-bottom: 0.15rem; }
+
+        table { width: 100%; border-collapse: collapse; margin-bottom: 0.5rem; }
+        th, td { text-align: left; padding: 0.4rem 0.5rem; border-bottom: 1px solid #eee; font-size: 0.88rem; vertical-align: top; }
+        th { color: #555; font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.02em; }
+        .rx-box table { margin-bottom: 0; }
+        .rx-box { border: 1px solid #ccc; border-radius: 0.35rem; padding: 0 0.75rem; }
+
+        .notes-block { font-size: 0.92rem; white-space: pre-wrap; margin: 0; }
+
+        .sign-row {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 2.5rem;
+        }
+        .sign-box { text-align: center; }
+        .sign-line { width: 12rem; border-top: 1px solid #333; margin-bottom: 0.3rem; }
+        .sign-box p { margin: 0; font-size: 0.82rem; color: #555; }
+
+        .footer-text { margin-top: 1.5rem; padding-top: 0.75rem; border-top: 1px solid #eee; font-size: 0.78rem; color: #777; }
+
+        @media print {
+            body { background: #fff; }
+            .toolbar { display: none; }
+            .sheet { max-width: none; margin: 0; padding: 0; box-shadow: none; }
+            @page { margin: 0.6in; }
+        }
+    </style>
+</head>
+<body>
+    <div class="toolbar">
+        <button onclick="window.print()">Print</button>
+    </div>
+
+    <div class="sheet">
+        {{if eq .Company.LetterheadMode "image"}}
+        {{if .Company.LetterheadImagePath}}
+        <div class="letterhead"><img src="/branding/letterhead" alt="" class="letterhead-image"></div>
+        {{else}}
+        <div class="plain-header">
+            {{if .Company.LogoPath}}<img src="/branding/logo" alt="">{{end}}
+            <div>
+                <h1>{{.Company.Name}}</h1>
+                {{if .Company.Address}}<p>{{.Company.Address}}</p>{{end}}
+                {{if .Company.Phone}}<p>{{.Company.Phone}}{{if .Company.Email}} &middot; {{.Company.Email}}{{end}}</p>{{end}}
+            </div>
+        </div>
+        {{end}}
+        {{else if .LetterheadHTML}}
+        <div class="letterhead">{{.LetterheadHTML}}</div>
+        {{else}}
+        <div class="plain-header">
+            {{if .Company.LogoPath}}<img src="/branding/logo" alt="">{{end}}
+            <div>
+                <h1>{{.Company.Name}}</h1>
+                {{if .Company.Address}}<p>{{.Company.Address}}</p>{{end}}
+                {{if .Company.Phone}}<p>{{.Company.Phone}}{{if .Company.Email}} &middot; {{.Company.Email}}{{end}}</p>{{end}}
+            </div>
+        </div>
+        {{end}}
+
+        <div class="meta-row">
+            <div class="meta-col">
+                <p class="name">{{.Encounter.PatientName}}</p>
+                <p class="sub">
+                    {{if .Patient.Age}}{{.Patient.Age}} yrs{{end}}{{if and .Patient.Age .Patient.Sex}}, {{end}}{{if .Patient.Sex}}{{.Patient.Sex}}{{end}}
+                    {{if .Patient.MRN}} &middot; MRN {{.Patient.MRN}}{{end}}
+                </p>
+                {{if .Patient.BloodGroup}}<p class="sub">Blood group: {{.Patient.BloodGroup}}</p>{{end}}
+                {{if .Patient.Allergies}}<p class="allergy-flag">Allergy: {{.Patient.Allergies}}</p>{{end}}
+            </div>
+            <div class="meta-col right">
+                <p class="sub"><strong>{{.Encounter.PractitionerName}}</strong></p>
+                <p class="sub">{{.Encounter.CreatedAt.Format "2 Jan 2006"}}</p>
+                {{if .Encounter.ChiefComplaint}}<p class="sub">c/o {{.Encounter.ChiefComplaint}}</p>{{end}}
+            </div>
+        </div>
+
+        {{if .Vitals}}
+        <div class="vitals-strip">
+            {{with .Vitals.HeightCM}}<span><strong>Ht</strong> {{.}} cm</span>{{end}}
+            {{with .Vitals.WeightKG}}<span><strong>Wt</strong> {{.}} kg</span>{{end}}
+            {{with .Vitals.BMI}}<span><strong>BMI</strong> {{printf "%.1f" .}}</span>{{end}}
+            {{if and .Vitals.BPSystolic .Vitals.BPDiastolic}}<span><strong>BP</strong> {{.Vitals.BPSystolic}}/{{.Vitals.BPDiastolic}}</span>{{end}}
+            {{with .Vitals.PulseBPM}}<span><strong>Pulse</strong> {{.}} bpm</span>{{end}}
+            {{with .Vitals.TemperatureC}}<span><strong>Temp</strong> {{.}}&deg;C</span>{{end}}
+            {{with .Vitals.SpO2}}<span><strong>SpO2</strong> {{.}}%</span>{{end}}
+        </div>
+        {{end}}
+
+        {{if .Diagnoses}}
+        <h2 class="section">Diagnosis</h2>
+        <ul class="diagnosis-list">
+            {{range .Diagnoses}}
+            <li>{{.Description}}{{if .ICD10Code}} <small>({{.ICD10Code}})</small>{{end}}</li>
+            {{end}}
+        </ul>
+        {{end}}
+
+        {{if .PrescriptionItems}}
+        <h2 class="section"><span class="rx-mark">&#8478;</span> Prescription</h2>
+        <div class="rx-box">
+            <table>
+                <thead><tr><th>Medication</th><th>Dosage</th><th>Duration</th><th>Qty</th><th>Instructions</th></tr></thead>
+                <tbody>
+                    {{range .PrescriptionItems}}
+                    <tr>
+                        <td>{{.DrugName}}</td>
+                        <td>{{.DosageText}}</td>
+                        <td>{{.DurationText}}</td>
+                        <td>{{if .Quantity}}{{.Quantity}}{{end}}</td>
+                        <td>{{.Remark}}</td>
+                    </tr>
+                    {{end}}
+                </tbody>
+            </table>
+        </div>
+        {{end}}
+
+        {{if .LabOrders}}
+        <h2 class="section">Investigations</h2>
+        <table>
+            <thead><tr><th>Test</th><th>Remark</th></tr></thead>
+            <tbody>
+                {{range .LabOrders}}
+                <tr><td>{{.TestName}}</td><td>{{.Comment}}</td></tr>
+                {{end}}
+            </tbody>
+        </table>
+        {{end}}
+
+        {{if .ProcedureOrders}}
+        <h2 class="section">Procedures</h2>
+        <table>
+            <thead><tr><th>Procedure</th><th>Remark</th></tr></thead>
+            <tbody>
+                {{range .ProcedureOrders}}
+                <tr><td>{{.ProcedureName}}</td><td>{{.Comments}}</td></tr>
+                {{end}}
+            </tbody>
+        </table>
+        {{end}}
+
+        {{if .Encounter.Plan}}
+        <h2 class="section">Advice</h2>
+        <p class="notes-block">{{.Encounter.Plan}}</p>
+        {{end}}
+
+        {{if .Encounter.NextReviewDate}}
+        <h2 class="section">Next Review</h2>
+        <p class="notes-block">{{.Encounter.NextReviewDate.Format "2 Jan 2006"}}</p>
+        {{end}}
+
+        <div class="sign-row">
+            <div class="sign-box">
+                <div class="sign-line"></div>
+                <p>{{.Encounter.PractitionerName}}</p>
+            </div>
+        </div>
+
+        {{if .Company.FooterText}}
+        <p class="footer-text">{{.Company.FooterText}}</p>
+        {{end}}
+    </div>
+</body>
+</html>

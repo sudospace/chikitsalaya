@@ -1,0 +1,68 @@
+{{define "title"}}Book Appointment — Chikitsalaya{{end}}
+{{define "content"}}
+<h1>Book Appointment</h1>
+<p>Patient: <strong>{{.Patient.FirstName}} {{.Patient.LastName}}</strong> ({{.Patient.MRN}})
+   &mdash; <a href="/appointments/new">change patient</a></p>
+
+{{if .Error}}
+<div role="alert" data-variant="error">{{.Error}}</div>
+{{end}}
+
+<article class="card">
+<form method="post" action="/appointments" id="booking-form">
+    <input type="hidden" name="patient_id" value="{{.Patient.ID}}">
+
+    <div class="hstack">
+        <div data-field>
+            <label>Practitioner</label>
+            <select name="practitioner_id" aria-label="Practitioner" required
+                    hx-get="/appointments/slots" hx-include="#booking-form" hx-target="#slot-grid"
+                    hx-trigger="{{if .PractitionerID}}load, {{end}}change">
+                <option value="">Select a practitioner</option>
+                {{range .Practitioners}}
+                <option value="{{.ID}}" {{if eq $.PractitionerID .ID}}selected{{end}}>{{.FullName}}</option>
+                {{end}}
+            </select>
+        </div>
+        <label data-field>
+            Date
+            <input type="date" name="date" value="{{.Date}}"
+                   hx-get="/appointments/slots" hx-include="#booking-form" hx-target="#slot-grid" hx-trigger="change">
+        </label>
+    </div>
+
+    <div class="hstack">
+        <label data-field>
+            Appointment type
+            <input type="text" name="appointment_type" placeholder="e.g. Consultation, Follow-up">
+        </label>
+        <div data-field>
+            <label>Fee</label>
+            <select data-fee-type aria-label="Fee type"
+                    data-first-fee="{{if .Company.FirstConsultationFee}}{{.Company.FirstConsultationFee}}{{end}}"
+                    data-followup-fee="{{if .Company.FollowUpFee}}{{.Company.FollowUpFee}}{{end}}">
+                <option value="custom">Custom</option>
+                {{if .Company.FirstConsultationFee}}<option value="first">First consultation ({{.Company.FirstConsultationFee}})</option>{{end}}
+                {{if .Company.FollowUpFee}}<option value="followup">Follow-up ({{.Company.FollowUpFee}})</option>{{end}}
+            </select>
+        </div>
+        <label data-field>
+            Amount (optional)
+            <input type="number" name="fee_amount" step="0.01" min="0" placeholder="e.g. 500" data-fee-amount>
+        </label>
+    </div>
+
+    <label data-field>
+        Reason for visit
+        <textarea name="reason_for_visit"></textarea>
+    </label>
+
+    <div data-field>
+        <label>Available slots</label>
+        <div id="slot-grid">
+            <p>Choose a practitioner and date to see available slots.</p>
+        </div>
+    </div>
+</form>
+</article>
+{{end}}

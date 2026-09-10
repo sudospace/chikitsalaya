@@ -1,0 +1,54 @@
+{{define "title"}}Users — Chikitsalaya{{end}}
+{{define "content"}}
+<div class="page-header">
+    <h1>Users</h1>
+    <a href="/admin/users/new" class="button">New User</a>
+</div>
+
+<article class="card">
+    <table>
+        <thead>
+            <tr>
+                <th>User</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {{range .}}
+            <tr>
+                <td>
+                    <div class="person-cell">
+                        <span class="avatar">{{printf "%.1s" .Email}}</span>
+                        <span class="email">{{.Email}}</span>
+                    </div>
+                </td>
+                <td>
+                    {{if eq .Role "admin"}}<span class="badge badge-primary">Admin</span>
+                    {{else if eq .Role "doctor"}}<span class="badge badge-success">Doctor</span>
+                    {{else}}<span class="badge badge-muted">Receptionist</span>{{end}}
+                </td>
+                <td>
+                    {{if .IsActive}}<span class="badge badge-success">Active</span>
+                    {{else}}<span class="badge badge-muted">Inactive</span>{{end}}
+                </td>
+                <td>
+                    <div class="row-actions">
+                        <a href="/admin/users/{{.ID}}/edit" class="button small outline">Edit</a>
+                        <form method="post" action="/admin/users/{{.ID}}/toggle-active">
+                            <input type="hidden" name="active" value="{{if .IsActive}}false{{else}}true{{end}}">
+                            <button type="submit" class="small outline"{{if .IsActive}} data-variant="danger"{{end}}>
+                                {{if .IsActive}}Deactivate{{else}}Activate{{end}}
+                            </button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {{else}}
+            <tr><td colspan="4">No users yet.</td></tr>
+            {{end}}
+        </tbody>
+    </table>
+</article>
+{{end}}

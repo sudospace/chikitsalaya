@@ -1,0 +1,37 @@
+{{define "title"}}Dosage / Duration Lists — Chikitsalaya{{end}}
+{{define "content"}}
+<div class="page-header">
+    <h1>Dosage / Duration Lists</h1>
+    <a href="/admin/lookup-values/new" class="button">New Value</a>
+</div>
+
+<article class="card">
+    <table>
+        <thead>
+            <tr>
+                <th>Category</th>
+                <th>Value</th>
+                <th>Order</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {{range .}}
+            <tr>
+                <td><span class="badge badge-muted">{{.Category}}</span></td>
+                <td>{{.Value}}</td>
+                <td>{{.SortOrder}}</td>
+                <td>
+                    <a href="/admin/lookup-values/{{.ID}}/edit" class="button small outline">Edit</a>
+                    <form method="post" action="/admin/lookup-values/{{.ID}}/delete" class="inline-form">
+                        <button type="submit" class="small outline" data-variant="danger">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {{else}}
+            <tr><td colspan="4">No values yet.</td></tr>
+            {{end}}
+        </tbody>
+    </table>
+</article>
+{{end}}

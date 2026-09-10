@@ -1,0 +1,21 @@
+{{define "title"}}Enter your code — Chikitsalaya{{end}}
+{{define "content"}}
+<article class="card auth-card">
+    <header>
+        <h1>Enter your code</h1>
+    </header>
+    <p>Enter the 6-digit code from your authenticator app.</p>
+
+    {{if .Error}}
+    <div role="alert" data-variant="error">{{.Error}}</div>
+    {{end}}
+
+    <form method="post" action="/2fa/verify">
+        <label data-field>
+            6-digit code
+            <input type="text" name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" required autofocus>
+        </label>
+        <button type="submit">Verify</button>
+    </form>
+</article>
+{{end}}

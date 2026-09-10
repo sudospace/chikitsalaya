@@ -1,0 +1,37 @@
+{{define "title"}}Practitioners — Chikitsalaya{{end}}
+{{define "content"}}
+<div class="page-header">
+    <h1>Practitioners</h1>
+    {{if .IsAdmin}}<a href="/admin/practitioners-manage/new" class="button">New Practitioner</a>{{end}}
+</div>
+
+<article class="card">
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Specialization</th>
+                <th>Phone</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{range .Practitioners}}
+            <tr>
+                <td>
+                    <div class="person-cell">
+                        <span class="avatar">{{printf "%.1s" .FullName}}</span>
+                        <a href="/practitioners/{{.ID}}">{{.FullName}}</a>
+                    </div>
+                </td>
+                <td>{{if .Specialization}}{{.Specialization}}{{else}}—{{end}}</td>
+                <td>{{if .Phone}}{{.Phone}}{{else}}—{{end}}</td>
+                <td>{{if .IsActive}}<span class="badge badge-success">Active</span>{{else}}<span class="badge badge-muted">Inactive</span>{{end}}</td>
+            </tr>
+            {{else}}
+            <tr><td colspan="4">No practitioners yet.</td></tr>
+            {{end}}
+        </tbody>
+    </table>
+</article>
+{{end}}

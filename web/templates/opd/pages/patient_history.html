@@ -1,0 +1,71 @@
+{{define "title"}}History — {{.Patient.FirstName}} {{.Patient.LastName}} — Chikitsalaya{{end}}
+{{define "content"}}
+<div class="page-header">
+    <h1>{{.Patient.FirstName}} {{.Patient.LastName}} — History</h1>
+    <a href="/patients/{{.Patient.ID}}" class="button outline">&larr; Back to patient</a>
+</div>
+<p><small>MRN {{.Patient.MRN}}</small></p>
+
+{{if not .Entries}}
+<p>No visits recorded yet.</p>
+{{end}}
+
+{{range .Entries}}
+{{$enc := .Encounter}}
+<article class="card">
+    <header class="page-header" style="margin-block-end: 0.5rem;">
+        <h3>{{$enc.CreatedAt.Format "2 Jan 2006 15:04"}} &middot; {{$enc.PractitionerName}}</h3>
+        <div>
+            {{if eq $enc.Status "in_progress"}}
+            <span class="badge badge-warning">In progress</span>
+            {{else}}
+            <span class="badge badge-success">Completed</span>
+            <a href="/encounters/{{$enc.ID}}/print" class="button outline small">Print</a>
+            {{end}}
+            <a href="/encounters/{{$enc.ID}}" class="button outline small">Open</a>
+        </div>
+    </header>
+
+    {{if $enc.ChiefComplaint}}<p><strong>Chief complaint:</strong> {{$enc.ChiefComplaint}}</p>{{end}}
+    {{if $enc.Assessment}}<p><strong>Assessment:</strong> {{$enc.Assessment}}</p>{{end}}
+
+    {{if .Vitals}}
+    <p><small>
+        {{with .Vitals.HeightCM}}Ht {{.}}cm &middot; {{end}}
+        {{with .Vitals.WeightKG}}Wt {{.}}kg &middot; {{end}}
+        {{with .Vitals.BMI}}BMI {{printf "%.1f" .}} &middot; {{end}}
+        {{with .Vitals.TemperatureC}}Temp {{.}}&deg;C &middot; {{end}}
+        {{if and .Vitals.BPSystolic .Vitals.BPDiastolic}}BP {{.Vitals.BPSystolic}}/{{.Vitals.BPDiastolic}} &middot; {{end}}
+        {{with .Vitals.PulseBPM}}Pulse {{.}} &middot; {{end}}
+        {{with .Vitals.SpO2}}SpO2 {{.}}%{{end}}
+    </small></p>
+    {{end}}
+
+    {{if .Diagnoses}}
+    <p><strong>Diagnoses:</strong>
+        {{range $i, $d := .Diagnoses}}{{if $i}}, {{end}}{{$d.Description}}{{if $d.ICD10Code}} ({{$d.ICD10Code}}){{end}}{{end}}
+    </p>
+    {{end}}
+
+    {{if .PrescriptionItems}}
+    <p><strong>Rx:</strong>
+        {{range $i, $it := .PrescriptionItems}}{{if $i}}, {{end}}{{$it.DrugName}}{{if $it.DosageText}} ({{$it.DosageText}}){{end}}{{end}}
+    </p>
+    {{end}}
+
+    {{if .LabOrders}}
+    <p><strong>Labs:</strong>
+        {{range $i, $lo := .LabOrders}}{{if $i}}, {{end}}{{$lo.TestName}}{{if eq $lo.Status "resulted"}} = {{$lo.ResultValue}} {{$lo.ResultUnit}}{{end}}{{end}}
+    </p>
+    {{end}}
+
+    {{if .ProcedureOrders}}
+    <p><strong>Procedures:</strong>
+        {{range $i, $po := .ProcedureOrders}}{{if $i}}, {{end}}{{$po.ProcedureName}}{{end}}
+    </p>
+    {{end}}
+
+    {{if $enc.NextReviewDate}}<p><small>Next review: {{$enc.NextReviewDate.Format "2 Jan 2006"}}</small></p>{{end}}
+</article>
+{{end}}
+{{end}}

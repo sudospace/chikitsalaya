@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Reschedule appointment — {{.Company.Name}}</title>
+    <link rel="stylesheet" href="/static/oat/oat.min.css">
+    <link rel="stylesheet" href="/static/app.css">
+    <script src="/static/oat/oat.min.js" defer></script>
+    <script src="/static/htmx.min.js" defer></script>
+</head>
+<body>
+<main class="container">
+    <h1>Reschedule your appointment</h1>
+    <p>Currently: <strong>{{.Appointment.ScheduledAt.Format "2 Jan 2006, 15:04"}}</strong> with {{.Appointment.PractitionerName}}</p>
+
+    {{if .Error}}<div role="alert" data-variant="error">{{.Error}}</div>{{end}}
+
+    <form method="post" action="/book/appointments/{{.Appointment.ID}}/reschedule" id="reschedule-form">
+        <label data-field>
+            New date
+            <input type="date" name="date" value="{{.Date}}" required
+                   hx-get="/book/appointments/{{.Appointment.ID}}/reschedule/slots"
+                   hx-include="#reschedule-form" hx-target="#slot-grid" hx-trigger="load, change">
+        </label>
+        <div data-field>
+            <label>Available times</label>
+            <div id="slot-grid">
+                <p>Choose a date to see available times.</p>
+            </div>
+        </div>
+        <p><small>Click one of the available times above to move your appointment.</small></p>
+    </form>
+
+    <p><a href="/book">&larr; Back</a></p>
+</main>
+</body>
+</html>

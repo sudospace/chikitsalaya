@@ -1,0 +1,61 @@
+{{define "title"}}Edit User — Chikitsalaya{{end}}
+{{define "content"}}
+<div class="page-header">
+    <h1>Edit User</h1>
+    <a href="/admin/users" class="button outline">Back to Users</a>
+</div>
+
+{{if .Error}}
+<div role="alert" data-variant="error">{{.Error}}</div>
+{{end}}
+
+<article class="card">
+    <header><h3>Login</h3></header>
+    <dl>
+        <dt>Email</dt><dd>{{.User.Email}}</dd>
+        <dt>Role</dt><dd>{{if eq .User.Role "admin"}}Admin{{else if eq .User.Role "doctor"}}Doctor{{else}}Receptionist{{end}}</dd>
+    </dl>
+    <p><small>Email and role can't be changed here — recreate the login if either needs to change.</small></p>
+</article>
+
+<article class="card">
+    <header><h3>Personal details</h3></header>
+    <form method="post" action="/admin/users/{{.User.ID}}">
+        <div class="hstack">
+            <label data-field>
+                Full name
+                <input type="text" name="full_name" value="{{.User.FullName}}" placeholder="Full name">
+            </label>
+            <label data-field>
+                Phone
+                <input type="tel" name="phone" value="{{.User.Phone}}">
+            </label>
+        </div>
+        <label data-field>
+            Address
+            <textarea name="address">{{.User.Address}}</textarea>
+        </label>
+        <div class="hstack">
+            <label data-field>
+                Emergency contact name
+                <input type="text" name="emergency_contact_name" value="{{.User.EmergencyContactName}}">
+            </label>
+            <label data-field>
+                Emergency contact phone
+                <input type="tel" name="emergency_contact_phone" value="{{.User.EmergencyContactPhone}}">
+            </label>
+        </div>
+        <menu class="buttons">
+            <li><button type="submit">Save</button></li>
+        </menu>
+    </form>
+</article>
+
+{{if .PractitionerEditURL}}
+<article class="card">
+    <header><h3>Practitioner &amp; schedule</h3></header>
+    <p>Qualification, specialization, and this doctor's weekly schedule are managed on their practitioner record.</p>
+    <a href="{{.PractitionerEditURL}}" class="button outline">Manage practitioner &amp; schedule &rarr;</a>
+</article>
+{{end}}
+{{end}}

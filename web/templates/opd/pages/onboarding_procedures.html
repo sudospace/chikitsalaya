@@ -1,0 +1,40 @@
+{{define "title"}}Set Up: Procedures — Chikitsalaya{{end}}
+{{define "content"}}
+<h1>Add your procedures</h1>
+<p>Add the procedures you commonly perform. This is the last step.</p>
+
+{{if .Error}}
+<div role="alert" data-variant="error">{{.Error}}</div>
+{{end}}
+
+<table>
+    <thead><tr><th>Name</th><th>Department</th></tr></thead>
+    <tbody>
+        {{range .Templates}}
+        <tr><td>{{.Name}}</td><td>{{.Department}}</td></tr>
+        {{else}}
+        <tr><td colspan="2">No procedures added yet.</td></tr>
+        {{end}}
+    </tbody>
+</table>
+
+<article class="card">
+    <header><h3>Add a procedure</h3></header>
+    <form method="post" action="/onboarding/procedures">
+        <div class="hstack">
+            <label data-field>Name<input type="text" name="name" required></label>
+            <label data-field>Department<input type="text" name="department"></label>
+        </div>
+        <label data-field>Description<textarea name="description"></textarea></label>
+        <button type="submit">Add procedure</button>
+    </form>
+</article>
+
+<menu class="buttons">
+    <li>
+        <form method="post" action="/onboarding/finish">
+            <button type="submit">Finish setup</button>
+        </form>
+    </li>
+</menu>
+{{end}}

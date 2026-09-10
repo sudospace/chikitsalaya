@@ -1,0 +1,13 @@
+{{define "appointment_slots"}}
+{{if .Slots}}
+<div class="hstack" style="flex-wrap: wrap;">
+    {{range .Slots}}
+    <button type="submit" name="scheduled_at" value="{{.Start.Format "2006-01-02T15:04"}}" class="outline small">
+        {{.Start.Format "15:04"}}{{if .ServiceUnitName}} &middot; {{.ServiceUnitName}}{{end}}
+    </button>
+    {{end}}
+</div>
+{{else}}
+<p>No available slots for this practitioner on this date.</p>
+{{end}}
+{{end}}

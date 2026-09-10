@@ -1,0 +1,35 @@
+{{define "patient_search_or_create"}}
+<div data-patient-widget data-mode="{{.Mode}}" data-search-endpoint="{{.SearchEndpoint}}"
+     {{if .NavigateTemplate}}data-navigate-template="{{.NavigateTemplate}}"{{end}}>
+    <label data-field>
+        Search by name, phone, or MRN
+        <input type="text" data-patient-search placeholder="Start typing..." autocomplete="off">
+    </label>
+    <p data-patient-selected-label hidden></p>
+    <div data-patient-results></div>
+    <p><button type="button" class="small outline" data-patient-add-new-toggle>+ Add as a new patient</button></p>
+    {{if eq .Mode "standalone"}}<form method="post" action="{{.ActionURL}}">{{end}}
+    <div data-patient-new-panel hidden>
+        <div class="hstack">
+            <label data-field>First name<input type="text" name="first_name" required></label>
+            <label data-field>Last name<input type="text" name="last_name"></label>
+        </div>
+        <div class="hstack">
+            <label data-field>Age<input type="number" name="age" min="0" max="150"></label>
+            <div data-field>
+                <label>Sex</label>
+                <select name="sex" aria-label="Sex">
+                    <option value="">Select</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            <label data-field>Phone<input type="tel" name="phone"></label>
+        </div>
+        {{if eq .Mode "standalone"}}<button type="submit">Save &amp; continue to booking</button>{{end}}
+    </div>
+    {{if eq .Mode "standalone"}}</form>{{end}}
+    {{if ne .Mode "standalone"}}<input type="hidden" name="patient_id">{{end}}
+</div>
+{{end}}

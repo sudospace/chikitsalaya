@@ -1,0 +1,54 @@
+{{define "title"}}{{if .Practitioner.ID}}Edit Practitioner{{else}}New Practitioner{{end}} — Chikitsalaya{{end}}
+{{define "content"}}
+<h1>{{if .Practitioner.ID}}Edit Practitioner{{else}}New Practitioner{{end}}</h1>
+
+{{if .Error}}
+<div role="alert" data-variant="error">{{.Error}}</div>
+{{end}}
+
+<article class="card">
+<form method="post" action="{{.Action}}">
+    <label data-field>
+        Full name
+        <input type="text" name="full_name" value="{{.Practitioner.FullName}}" required>
+    </label>
+
+    <div class="hstack">
+        <label data-field>
+            Qualification
+            <input type="text" name="qualification" value="{{.Practitioner.Qualification}}" placeholder="e.g. MBBS, MD">
+        </label>
+        <div data-field>
+            <label>Specialization</label>
+            <select name="specialization" aria-label="Specialization">
+                <option value="" {{if eq .Practitioner.Specialization ""}}selected{{end}}>Select</option>
+                {{range .Specializations}}
+                <option value="{{.}}" {{if eq $.Practitioner.Specialization .}}selected{{end}}>{{.}}</option>
+                {{end}}
+            </select>
+        </div>
+    </div>
+
+    <div class="hstack">
+        <label data-field>
+            Phone
+            <input type="tel" name="phone" value="{{.Practitioner.Phone}}">
+        </label>
+        <label data-field>
+            Email
+            <input type="email" name="email" value="{{.Practitioner.Email}}">
+        </label>
+    </div>
+
+    <label data-field>
+        <input type="checkbox" name="is_active" {{if or (not .Practitioner.ID) .Practitioner.IsActive}}checked{{end}}>
+        Active
+    </label>
+
+    <menu class="buttons">
+        <li><button type="submit">Save</button></li>
+        <li><a href="{{if .Practitioner.ID}}/practitioners/{{.Practitioner.ID}}{{else}}/practitioners{{end}}" class="button outline">Cancel</a></li>
+    </menu>
+</form>
+</article>
+{{end}}

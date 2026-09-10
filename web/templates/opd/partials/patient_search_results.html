@@ -1,0 +1,14 @@
+{{define "patient_search_results"}}
+<div data-patient-results-inner data-count="{{len .}}">
+{{if .}}
+<ul class="result-list">
+    {{range .}}
+    <li><button type="button" class="small outline" data-select-patient
+                data-id="{{.ID}}" data-name="{{.FirstName}} {{.LastName}}" data-phone="{{.Phone}}" data-mrn="{{.MRN}}">
+        {{.FirstName}} {{.LastName}} <small>&middot; MRN {{.MRN}}{{if .Phone}} &middot; {{.Phone}}{{end}}</small>
+    </button></li>
+    {{end}}
+</ul>
+{{end}}
+</div>
+{{end}}

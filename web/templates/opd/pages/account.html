@@ -1,0 +1,251 @@
+{{define "title"}}My Account — Chikitsalaya{{end}}
+{{define "content"}}
+<div class="page-header">
+    <h1>My Account</h1>
+</div>
+
+{{if .Saved}}
+<div role="alert" data-variant="success">{{.Saved}}</div>
+{{end}}
+{{if .Error}}
+<div role="alert" data-variant="error">{{.Error}}</div>
+{{end}}
+
+<div class="account-layout">
+    <nav class="account-nav" data-tabs>
+        <button type="button" class="account-nav-item" data-tab-toggle data-tab-target="tab-credentials">
+            Credentials
+        </button>
+        <button type="button" class="account-nav-item" data-tab-toggle data-tab-target="tab-personal">
+            Personal
+        </button>
+        {{if .IsDoctor}}
+        <button type="button" class="account-nav-item" data-tab-toggle data-tab-target="tab-schedule">
+            Schedule
+        </button>
+        {{end}}
+    </nav>
+
+    <div class="account-content">
+        <section id="tab-credentials" class="account-panel">
+            <article class="card">
+                <header><h3>Credentials</h3></header>
+                <dl>
+                    <dt>Email</dt><dd>{{.Email}}</dd>
+                    <dt>Role</dt><dd>{{.RoleLabel}}</dd>
+                    <dt>Two-factor authentication</dt>
+                    <dd>{{if .TOTPOn}}<span class="badge badge-success">Enabled</span>{{else}}<span class="badge badge-warning">Not set up</span>{{end}}</dd>
+                </dl>
+            </article>
+
+            {{if .Permissions}}
+            <article class="card">
+                <header><h3>What I can access</h3></header>
+                <table>
+                    <thead><tr><th>Module</th><th>Access</th></tr></thead>
+                    <tbody>
+                        {{range .Permissions}}
+                        <tr>
+                            <td>{{.Label}}</td>
+                            <td>
+                                {{if eq .Access "Full access"}}<span class="badge badge-success">{{.Access}}</span>
+                                {{else if eq .Access "View only"}}<span class="badge badge-primary">{{.Access}}</span>
+                                {{else}}<span class="badge badge-muted">{{.Access}}</span>{{end}}
+                            </td>
+                        </tr>
+                        {{end}}
+                    </tbody>
+                </table>
+                <p><small>Set by whoever created your login — ask your company admin to change any of this.</small></p>
+            </article>
+            {{end}}
+
+            <article class="card">
+                <header><h3>Change password</h3></header>
+                <form method="post" action="/account/password">
+                    <label data-field>
+                        Current password
+                        <input type="password" name="current_password" autocomplete="current-password" required>
+                    </label>
+                    <div class="hstack">
+                        <label data-field>
+                            New password
+                            <input type="password" name="new_password" autocomplete="new-password" minlength="8" required>
+                        </label>
+                        <label data-field>
+                            Confirm new password
+                            <input type="password" name="confirm_password" autocomplete="new-password" minlength="8" required>
+                        </label>
+                    </div>
+                    <p><small>At least 8 characters.</small></p>
+                    <menu class="buttons">
+                        <li><button type="submit">Update password</button></li>
+                    </menu>
+                </form>
+            </article>
+
+            {{if .IsAdmin}}
+            <article class="card">
+                <header><h3>Also a doctor?</h3></header>
+                {{if .LinkedPractitioner}}
+                <p>Linked to <strong>{{.LinkedPractitioner.FullName}}</strong>.</p>
+                {{if .ActingAsDoctor}}
+                <p><small>You're currently in Doctor view — use the profile menu's "Exit Doctor View" to switch back.</small></p>
+                {{else}}
+                <form method="post" action="/account/act-as-doctor">
+                    <menu class="buttons">
+                        <li><button type="submit" class="outline">Switch to Doctor view &rarr;</button></li>
+                    </menu>
+                </form>
+                {{end}}
+                {{else}}
+                <p>Link your login to an existing practitioner record to also see their dashboard, prescribe, and manage their schedule — without a second login.</p>
+                <form method="post" action="/account/link-practitioner">
+                    <div data-field>
+                        <label>Practitioner</label>
+                        <select name="practitioner_id" aria-label="Practitioner" required>
+                            <option value="">Select a practitioner</option>
+                            {{range .AllPractitioners}}
+                            <option value="{{.ID}}">{{.FullName}}</option>
+                            {{end}}
+                        </select>
+                    </div>
+                    <menu class="buttons">
+                        <li><button type="submit" class="outline">Link practitioner</button></li>
+                    </menu>
+                </form>
+                {{end}}
+            </article>
+            {{end}}
+        </section>
+
+        <section id="tab-personal" class="account-panel" hidden>
+            <article class="card">
+                <header><h3>Personal details</h3></header>
+                <form method="post" action="/account/personal">
+                    <div class="hstack">
+                        <div data-field>
+                            <label>Full name</label>
+                            {{if .FullName}}
+                            <input type="text" value="{{.FullName}}" disabled>
+                            {{else}}
+                            <input type="text" name="full_name" placeholder="Your full name" required>
+                            {{end}}
+                        </div>
+                        <label data-field>
+                            Phone
+                            <input type="tel" name="phone" value="{{.Phone}}">
+                        </label>
+                    </div>
+                    {{if .FullName}}
+                    <p><small>Your name is locked once set — contact an admin if it needs correcting.</small></p>
+                    {{else}}
+                    <p><small>Your name can only be set once, so double-check it before saving.</small></p>
+                    {{end}}
+
+                    <label data-field>
+                        Address
+                        <textarea name="address">{{.Address}}</textarea>
+                    </label>
+
+                    <div class="hstack">
+                        <label data-field>
+                            Emergency contact name
+                            <input type="text" name="emergency_contact_name" value="{{.EmergencyContactName}}">
+                        </label>
+                        <label data-field>
+                            Emergency contact phone
+                            <input type="tel" name="emergency_contact_phone" value="{{.EmergencyContactPhone}}">
+                        </label>
+                    </div>
+
+                    <menu class="buttons">
+                        <li><button type="submit">Save</button></li>
+                    </menu>
+                </form>
+            </article>
+        </section>
+
+        {{if .IsDoctor}}
+        <section id="tab-schedule" class="account-panel" hidden>
+            <article class="card">
+                <header><h3>Weekly schedule</h3></header>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Day</th>
+                            <th>Start</th>
+                            <th>End</th>
+                            <th>Slot length</th>
+                            <th>Room</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{$days := .Days}}
+                        {{range .Schedules}}
+                        <tr>
+                            <td>{{index $days .DayOfWeek}}</td>
+                            <td>{{.StartTime}}</td>
+                            <td>{{.EndTime}}</td>
+                            <td>{{.SlotDurationMinutes}} min</td>
+                            <td>{{if .ServiceUnitName}}{{.ServiceUnitName}}{{else}}—{{end}}</td>
+                            <td>
+                                <form method="post" action="/account/schedule/{{.ID}}/delete" class="inline-form">
+                                    <button type="submit" class="small outline" data-variant="danger">Remove</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {{else}}
+                        <tr><td colspan="6">No schedule set yet.</td></tr>
+                        {{end}}
+                    </tbody>
+                </table>
+
+                <h4>Add a schedule block</h4>
+                <form method="post" action="/account/schedule">
+                    <div class="hstack">
+                        <div data-field>
+                            <label>Day</label>
+                            <select name="day_of_week" aria-label="Day of week" required>
+                                <option value="0">Sunday</option>
+                                <option value="1" selected>Monday</option>
+                                <option value="2">Tuesday</option>
+                                <option value="3">Wednesday</option>
+                                <option value="4">Thursday</option>
+                                <option value="5">Friday</option>
+                                <option value="6">Saturday</option>
+                            </select>
+                        </div>
+                        <label data-field>
+                            Start time
+                            <input type="time" name="start_time" required>
+                        </label>
+                        <label data-field>
+                            End time
+                            <input type="time" name="end_time" required>
+                        </label>
+                        <label data-field>
+                            Slot length (minutes)
+                            <input type="number" name="slot_duration_minutes" value="15" min="5" step="5" required>
+                        </label>
+                        <div data-field>
+                            <label>Room (optional)</label>
+                            <select name="service_unit_id" aria-label="Room">
+                                <option value="">None</option>
+                                {{range .ServiceUnits}}
+                                <option value="{{.ID}}">{{.Name}}</option>
+                                {{end}}
+                            </select>
+                        </div>
+                    </div>
+                    <menu class="buttons">
+                        <li><button type="submit">Add schedule block</button></li>
+                    </menu>
+                </form>
+            </article>
+        </section>
+        {{end}}
+    </div>
+</div>
+{{end}}

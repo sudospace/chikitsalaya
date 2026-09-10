@@ -1,0 +1,146 @@
+{{define "title"}}Quick Prescription — Chikitsalaya{{end}}
+{{define "content"}}
+<div class="page-header">
+    <h1>Quick Prescription</h1>
+    <a href="/" class="button outline">Cancel</a>
+</div>
+<p><small>For a walk-in you want to prescribe for and print right away — this creates a same-visit
+    appointment and a completed consultation, exactly like the full workspace flow, just in one step.</small></p>
+
+{{if .Error}}
+<div role="alert" data-variant="error">{{.Error}}</div>
+{{end}}
+
+<form method="post" action="/quick-prescription">
+    <article class="card">
+        <header><h3>Patient</h3></header>
+        {{template "patient_search_or_create" .PatientWidget}}
+    </article>
+
+    <article class="card">
+        <header><h3>Prescriber</h3></header>
+        <div data-field>
+            <label>Doctor</label>
+            <select name="practitioner_id" aria-label="Doctor" required>
+                <option value="">Select a doctor</option>
+                {{$default := .DefaultPractitionerID}}
+                {{range .Practitioners}}
+                <option value="{{.ID}}" {{if eq $default .ID}}selected{{end}}>{{.FullName}}</option>
+                {{end}}
+            </select>
+        </div>
+        <label data-field>
+            Notes / working diagnosis (optional)
+            <textarea name="notes"></textarea>
+        </label>
+        <div class="hstack">
+            <label data-field>
+                Remark / advice (optional)
+                <textarea name="plan"></textarea>
+            </label>
+            <label data-field>
+                Follow-up date (optional)
+                <input type="date" name="next_review_date">
+            </label>
+        </div>
+    </article>
+
+    <article class="card">
+        <header><h3>Medications</h3></header>
+        <table>
+            <thead><tr><th>Drug</th><th>Dosage</th><th>Duration</th><th>Qty</th><th>Remark</th></tr></thead>
+            <tbody id="rx-lines">
+                {{range $i := 3}}
+                <tr>
+                    <td><input type="text" name="drug_name" data-live-search data-endpoint="/catalog/drugs-search" data-results="rx-drug-results" data-hidden-id="drug_id" placeholder="Type at least 3 letters..." autocomplete="off"><input type="hidden" name="drug_id"></td>
+                    <td><input type="text" name="dosage_text" data-dropdown-search data-options-id="dosage-options-data" data-results="rx-dosage-results" data-hidden-id="dosage_id" data-lookup-category="dosage" data-quick-add-endpoint="/catalog/quick-add-lookup-value" placeholder="e.g. Twice a day" autocomplete="off"><input type="hidden" name="dosage_id"></td>
+                    <td><input type="text" name="duration_text" data-dropdown-search data-options-id="duration-options-data" data-results="rx-duration-results" data-hidden-id="duration_id" data-lookup-category="duration" data-quick-add-endpoint="/catalog/quick-add-lookup-value" placeholder="e.g. 5 Days" autocomplete="off"><input type="hidden" name="duration_id"></td>
+                    <td><input type="number" step="1" name="quantity" style="width: 4.5rem;"></td>
+                    <td><input type="text" name="remark"></td>
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
+        <menu class="buttons">
+            <li><button type="button" class="small outline" data-add-row data-template="rx-line-template" data-target="rx-lines">+ Add line</button></li>
+        </menu>
+        <div id="rx-drug-results" class="catalog-dropdown" hidden></div>
+        <div id="rx-dosage-results" class="catalog-dropdown" hidden></div>
+        <div id="rx-duration-results" class="catalog-dropdown" hidden></div>
+        <p><small>Drug names are looked up from your clinic's catalog as you type (3+ letters); if nothing matches,
+            an "+ Add" option appears so it becomes a real catalog entry instead of free text. Dosage/duration show
+            your clinic's existing values as soon as you click into the field, with the same "+ Add" option if
+            nothing matches.</small></p>
+
+        <script type="application/json" id="dosage-options-data">{{.DosageOptionsJSON}}</script>
+        <script type="application/json" id="duration-options-data">{{.DurationOptionsJSON}}</script>
+    </article>
+
+    <article class="card">
+        <header><h3>Lab tests <small>(optional)</small></h3></header>
+        <table>
+            <thead><tr><th>Test</th><th>Comment</th></tr></thead>
+            <tbody id="lab-lines">
+                {{range $i := 2}}
+                <tr>
+                    <td><input type="text" name="test_name" data-live-search data-endpoint="/catalog/lab-tests-search" data-results="rx-lab-results" data-hidden-id="lab_test_template_id" placeholder="Type at least 3 letters..." autocomplete="off"><input type="hidden" name="lab_test_template_id"></td>
+                    <td><input type="text" name="comment"></td>
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
+        <menu class="buttons">
+            <li><button type="button" class="small outline" data-add-row data-template="lab-line-template" data-target="lab-lines">+ Add line</button></li>
+        </menu>
+        <div id="rx-lab-results" class="catalog-dropdown" hidden></div>
+    </article>
+
+    <article class="card">
+        <header><h3>Procedures <small>(optional)</small></h3></header>
+        <table>
+            <thead><tr><th>Procedure</th><th>Comment</th></tr></thead>
+            <tbody id="procedure-lines">
+                {{range $i := 2}}
+                <tr>
+                    <td><input type="text" name="procedure_name" data-live-search data-endpoint="/catalog/procedures-search" data-results="rx-procedure-results" data-hidden-id="procedure_template_id" placeholder="Type at least 3 letters..." autocomplete="off"><input type="hidden" name="procedure_template_id"></td>
+                    <td><input type="text" name="comments"></td>
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
+        <menu class="buttons">
+            <li><button type="button" class="small outline" data-add-row data-template="procedure-line-template" data-target="procedure-lines">+ Add line</button></li>
+        </menu>
+        <div id="rx-procedure-results" class="catalog-dropdown" hidden></div>
+    </article>
+
+    <menu class="buttons">
+        <li><button type="submit">Save &amp; print prescription</button></li>
+        <li><a href="/" class="button outline">Cancel</a></li>
+    </menu>
+</form>
+
+<template id="rx-line-template">
+    <tr>
+        <td><input type="text" name="drug_name" data-live-search data-endpoint="/catalog/drugs-search" data-results="rx-drug-results" data-hidden-id="drug_id" placeholder="Type at least 3 letters..." autocomplete="off"><input type="hidden" name="drug_id"></td>
+        <td><input type="text" name="dosage_text" data-dropdown-search data-options-id="dosage-options-data" data-results="rx-dosage-results" data-hidden-id="dosage_id" data-lookup-category="dosage" data-quick-add-endpoint="/catalog/quick-add-lookup-value" placeholder="e.g. Twice a day" autocomplete="off"><input type="hidden" name="dosage_id"></td>
+        <td><input type="text" name="duration_text" data-dropdown-search data-options-id="duration-options-data" data-results="rx-duration-results" data-hidden-id="duration_id" data-lookup-category="duration" data-quick-add-endpoint="/catalog/quick-add-lookup-value" placeholder="e.g. 5 Days" autocomplete="off"><input type="hidden" name="duration_id"></td>
+        <td><input type="number" step="1" name="quantity" style="width: 4.5rem;"></td>
+        <td><input type="text" name="remark"></td>
+    </tr>
+</template>
+
+<template id="lab-line-template">
+    <tr>
+        <td><input type="text" name="test_name" data-live-search data-endpoint="/catalog/lab-tests-search" data-results="rx-lab-results" data-hidden-id="lab_test_template_id" placeholder="Type at least 3 letters..." autocomplete="off"><input type="hidden" name="lab_test_template_id"></td>
+        <td><input type="text" name="comment"></td>
+    </tr>
+</template>
+
+<template id="procedure-line-template">
+    <tr>
+        <td><input type="text" name="procedure_name" data-live-search data-endpoint="/catalog/procedures-search" data-results="rx-procedure-results" data-hidden-id="procedure_template_id" placeholder="Type at least 3 letters..." autocomplete="off"><input type="hidden" name="procedure_template_id"></td>
+        <td><input type="text" name="comments"></td>
+    </tr>
+</template>
+{{end}}

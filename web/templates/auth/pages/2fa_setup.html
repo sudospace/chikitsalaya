@@ -1,0 +1,25 @@
+{{define "title"}}Set up two-factor authentication — Chikitsalaya{{end}}
+{{define "content"}}
+<article class="card auth-card auth-card-wide">
+    <header>
+        <h1>Set up two-factor authentication</h1>
+    </header>
+    <p>Two-factor authentication is required for every account. Scan this code with an authenticator app (Google Authenticator, Authy, 1Password, etc.), then enter the 6-digit code it shows.</p>
+
+    <img src="{{.QRCodeDataURI}}" alt="Two-factor setup QR code" width="220" height="220" class="auth-qr">
+
+    <p><small>Can't scan? Enter this key manually: <code>{{.Secret}}</code></small></p>
+
+    {{if .Error}}
+    <div role="alert" data-variant="error">{{.Error}}</div>
+    {{end}}
+
+    <form method="post" action="/2fa/setup">
+        <label data-field>
+            6-digit code
+            <input type="text" name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" required autofocus>
+        </label>
+        <button type="submit">Confirm and continue</button>
+    </form>
+</article>
+{{end}}

@@ -1,0 +1,38 @@
+{{define "title"}}Drugs — Chikitsalaya{{end}}
+{{define "content"}}
+<div class="page-header">
+    <h1>Drugs</h1>
+    <a href="/admin/drugs/new" class="button">New Drug</a>
+</div>
+
+<article class="card">
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Generic name</th>
+                <th>Form</th>
+                <th>Strength</th>
+                <th>Stock</th>
+                <th>Status</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {{range .}}
+            <tr>
+                <td>{{.Name}}</td>
+                <td>{{.GenericName}}</td>
+                <td>{{.Form}}</td>
+                <td>{{.Strength}}</td>
+                <td>{{.StockQty}} {{.Unit}}</td>
+                <td>{{if .IsActive}}<span class="badge badge-success">Active</span>{{else}}<span class="badge badge-muted">Inactive</span>{{end}}</td>
+                <td><a href="/admin/drugs/{{.ID}}/edit" class="button small outline">Edit</a></td>
+            </tr>
+            {{else}}
+            <tr><td colspan="7">No drugs yet.</td></tr>
+            {{end}}
+        </tbody>
+    </table>
+</article>
+{{end}}

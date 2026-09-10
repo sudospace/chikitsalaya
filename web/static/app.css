@@ -1,0 +1,902 @@
+/* Warm terracotta/cream palette matching Oat's own brand mark, not Oat's
+   default cool indigo. success/warning/danger keep Oat's defaults. */
+:root {
+    --primary: light-dark(#b15e2e, #e8a868);
+    --primary-foreground: light-dark(#fffaf5, #3a2415);
+    --ring: light-dark(#b15e2e, #e8a868);
+
+    --background: light-dark(#fbf6f0, #18130f);
+    --card: light-dark(#ffffff, #211a15);
+    --border: light-dark(#e6d7c8, #4a3c30);
+    --accent: light-dark(#f3e6d6, #2b2019);
+    --muted: light-dark(#f3e6d6, #2b2019);
+    --muted-foreground: light-dark(#8a7263, #b8a594);
+    --foreground: light-dark(#241c17, #f5ede4);
+
+    --radius-medium: 0.55rem;
+    --radius-large: 1rem;
+    --shadow-medium: 0 1px 2px rgb(60 40 20 / .06), 0 4px 12px -2px rgb(60 40 20 / .08);
+    --shadow-large: 0 8px 24px -4px rgb(60 40 20 / .14), 0 2px 6px -2px rgb(60 40 20 / .08);
+}
+
+body {
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Wider than Oat's own label gap (--space-1, 4px). Matches Oat's :where()
+   selector exactly for the same zero specificity, so this wins on source
+   order rather than fighting it, without touching --space-1 itself (Oat
+   reuses that token for tighter spacing elsewhere). */
+:where(input:not([type="checkbox"], [type="radio"], [type="range"], [type="file"], [type="color"]), textarea, select) {
+    margin-block-start: var(--space-2);
+}
+
+/* Without this, a <label data-field> in .hstack shrinks to fit its label
+   text as a flex item, giving uneven field widths; give each an equal
+   share instead. Checkbox/radio labels keep their natural small size. */
+.hstack > [data-field] {
+    flex: 1 1 200px;
+}
+
+.hstack > label:has(> input[type="checkbox"]),
+.hstack > label:has(> input[type="radio"]) {
+    flex: 0 0 auto;
+}
+
+h1, h2, h3 {
+    letter-spacing: -0.01em;
+}
+
+/* ---- App shell (navbar + main) ---- */
+
+.navbar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    row-gap: 0.5rem;
+    gap: 1.25rem;
+    padding: 0.75rem 1.5rem;
+    background-color: color-mix(in srgb, var(--card) 92%, transparent);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+    box-shadow: var(--shadow-medium);
+    position: sticky;
+    top: 0;
+    z-index: 20;
+}
+
+.navbar-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: var(--font-semibold);
+    font-size: var(--text-4);
+    letter-spacing: -0.01em;
+    text-decoration: none;
+    color: var(--foreground);
+    flex-shrink: 0;
+}
+
+.navbar-brand:hover {
+    color: var(--foreground);
+}
+
+.navbar-brand-text {
+    display: inline-flex;
+    flex-direction: column;
+    line-height: 1.15;
+}
+
+.navbar-powered-by {
+    font-size: var(--text-8);
+    font-weight: var(--font-normal);
+    color: var(--muted-foreground);
+}
+
+.navbar-logo {
+    height: 1.75rem;
+    width: auto;
+    border-radius: var(--radius-small);
+}
+
+.navbar nav {
+    flex: 1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.15rem;
+    font-size: var(--text-8);
+    padding: 0;
+    min-height: 0;
+    overflow: visible;
+}
+
+.navbar nav a {
+    color: var(--muted-foreground);
+    text-decoration: none;
+    padding: 0.4rem 0.7rem;
+    border-radius: var(--radius-full);
+    transition: background-color var(--transition-fast), color var(--transition-fast);
+    white-space: nowrap;
+}
+
+.navbar nav a:hover {
+    color: var(--foreground);
+    background-color: var(--accent);
+}
+
+.navbar-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+
+/* ---- Nav dropdowns (Catalog/Setup groups, the profile menu) ---- */
+
+.nav-dropdown {
+    position: relative;
+}
+
+/* Oat styles every bare <button> as a filled primary button by default;
+   force-reset to read as a plain nav link like the <a>s beside it.
+   !important is a narrow override of that one Oat default, not a general
+   specificity fight. */
+.nav-dropdown-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font: inherit;
+    font-size: var(--text-8);
+    color: var(--muted-foreground) !important;
+    background: none !important;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0.4rem 0.7rem;
+    border-radius: var(--radius-full);
+    cursor: pointer;
+    transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.nav-dropdown-toggle:hover,
+.nav-dropdown-toggle[aria-expanded="true"] {
+    color: var(--foreground) !important;
+    background-color: var(--accent) !important;
+}
+
+.nav-caret {
+    width: 0;
+    height: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 4px solid currentColor;
+    opacity: 0.6;
+    flex-shrink: 0;
+}
+
+.nav-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 0.35rem);
+    left: 0;
+    min-width: 12rem;
+    z-index: 30;
+    background-color: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-medium);
+    box-shadow: var(--shadow-large);
+    padding: 0.35rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+}
+
+/* `hidden` alone is a low-priority UA default and loses to the `display`
+   rule above; this attribute selector has higher specificity and wins it back. */
+.nav-dropdown-menu[hidden] {
+    display: none;
+}
+
+.nav-dropdown-menu-right {
+    left: auto;
+    right: 0;
+}
+
+.nav-dropdown-menu a,
+.nav-dropdown-item-btn {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 0.5rem 0.6rem;
+    border-radius: var(--radius-small);
+    font-size: var(--text-8);
+    color: var(--foreground) !important;
+    text-decoration: none;
+    background: none !important;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    font: inherit;
+    cursor: pointer;
+}
+
+.nav-dropdown-menu a:hover,
+.nav-dropdown-item-btn:hover {
+    background-color: var(--accent) !important;
+}
+
+.nav-dropdown-menu form {
+    margin: 0;
+}
+
+.nav-dropdown-header {
+    padding: 0.4rem 0.6rem 0.5rem;
+    margin-bottom: 0.25rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.nav-dropdown-header strong {
+    display: block;
+    font-size: var(--text-8);
+    font-weight: var(--font-medium);
+    overflow-wrap: anywhere;
+}
+
+.nav-dropdown-header small {
+    display: block;
+    margin-top: 0.1rem;
+    color: var(--muted-foreground);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.navbar-profile-toggle .avatar {
+    width: 1.5rem;
+    height: 1.5rem;
+    font-size: 0.7rem;
+}
+
+.navbar-profile-label {
+    max-width: 12rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ---- Navbar mobile collapse ---- */
+
+.navbar-toggle {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 0.25rem;
+    width: 2.25rem;
+    height: 2.25rem;
+    padding: 0;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-medium);
+    background: var(--card);
+    flex-shrink: 0;
+    cursor: pointer;
+    /* No explicit order — first in the DOM, before the brand, so default order keeps it leftmost. */
+}
+
+.navbar-toggle span {
+    display: block;
+    width: 1.1rem;
+    height: 2px;
+    background: var(--foreground);
+    border-radius: 1px;
+}
+
+
+/* ---- Global search (header) ---- */
+
+.navbar-search {
+    position: relative;
+    flex-shrink: 0;
+    width: 15rem;
+    max-width: 40vw;
+}
+
+.navbar-search input {
+    min-height: 2.25rem;
+}
+
+.search-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    margin-top: 0.35rem;
+    background-color: var(--card);
+    z-index: 30;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.search-dropdown:not(:empty) {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-medium);
+    box-shadow: var(--shadow-large);
+    padding: var(--space-2);
+}
+
+.search-group-label {
+    font-size: var(--text-8);
+    font-weight: var(--font-semibold);
+    color: var(--muted-foreground);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    padding: var(--space-2) var(--space-2) var(--space-1);
+}
+
+.search-result {
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-2);
+    border-radius: var(--radius-small);
+    text-decoration: none;
+    color: var(--foreground);
+}
+
+.search-result:hover {
+    background-color: var(--accent);
+    color: var(--foreground);
+}
+
+.search-result span {
+    font-size: var(--text-8);
+    color: var(--muted-foreground);
+}
+
+.search-empty {
+    padding: var(--space-3);
+    font-size: var(--text-7);
+    color: var(--muted-foreground);
+}
+
+.container {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 3rem;
+}
+
+/* Spacing between stacked cards; not scoped to direct .container children
+   since the account page nests cards one level deeper. */
+.card + .card,
+.card + article,
+article + .card {
+    margin-top: 1.25rem;
+}
+
+.card {
+    box-shadow: var(--shadow-medium);
+}
+
+/* Tables scroll horizontally within themselves instead of breaking page
+   layout on narrow viewports. */
+table {
+    font-size: var(--text-7);
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    /* Scroll-shadow affordance: solid gradients scroll with the content
+       (local) to mask the true edges; shadow gradients stay fixed
+       (scroll) as an edge-of-frame hint that there's more to see. */
+    background:
+        linear-gradient(to right, var(--card) 50%, transparent) 0 0,
+        linear-gradient(to left, var(--card) 50%, transparent) 100% 0,
+        linear-gradient(to right, rgb(15 23 42 / .12), transparent 24px) 0 0,
+        linear-gradient(to left, rgb(15 23 42 / .12), transparent 24px) 100% 0;
+    background-repeat: no-repeat;
+    background-color: var(--card);
+    background-size: 24px 100%, 24px 100%, 12px 100%, 12px 100%;
+    background-attachment: local, local, scroll, scroll;
+}
+
+/* Wraps an input+button pair in an inner flex div rather than flexing the
+   <td> itself, so the cell still sizes normally within the table's column
+   layout. */
+.cell-with-action {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.cell-with-action input {
+    flex: 1;
+    min-width: 8rem;
+}
+
+/* Oat doesn't style bare <dl>; lay it out as a two-column label/value grid. */
+dl {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    column-gap: var(--space-6);
+    row-gap: var(--space-3);
+    margin: 0;
+}
+
+dt {
+    color: var(--muted-foreground);
+    font-size: var(--text-7);
+    white-space: nowrap;
+}
+
+dd {
+    margin: 0;
+}
+
+/* ---- Home dashboard: module quick-links ---- */
+
+.module-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1rem;
+    margin-block-end: 2rem;
+}
+
+.module-tile {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding: var(--space-5);
+    background-color: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-medium);
+    box-shadow: var(--shadow-small);
+    text-decoration: none;
+    color: var(--foreground);
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast);
+}
+
+.module-tile:hover {
+    box-shadow: var(--shadow-medium);
+    border-color: color-mix(in srgb, var(--primary) 40%, var(--border));
+    transform: translateY(-1px);
+    color: var(--foreground);
+}
+
+.module-tile strong {
+    font-size: var(--text-5);
+}
+
+.module-tile span {
+    color: var(--muted-foreground);
+    font-size: var(--text-8);
+}
+
+.module-tile-icon {
+    font-size: 1.5rem;
+    line-height: 1;
+}
+
+/* Denser than the "Quick access" grid above — admin housekeeping opened rarely. */
+.module-grid-compact {
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 0.75rem;
+}
+
+.module-tile-compact {
+    padding: var(--space-4);
+    gap: 0.2rem;
+    box-shadow: none;
+}
+
+.module-tile-compact .module-tile-icon {
+    font-size: 1.15rem;
+}
+
+.module-tile-compact strong {
+    font-size: var(--text-7);
+}
+
+/* ---- Home dashboard: today's quick stats ---- */
+
+.stat-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 0.85rem;
+    margin-block-end: 1.5rem;
+}
+
+.stat-tile {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    padding: var(--space-4) var(--space-5);
+    background-color: var(--card);
+    border: 1px solid var(--border);
+    border-inline-start: 3px solid var(--border);
+    border-radius: var(--radius-medium);
+    box-shadow: var(--shadow-small);
+}
+
+.stat-value {
+    font-size: var(--text-2);
+    font-weight: var(--font-semibold);
+    letter-spacing: -0.01em;
+}
+
+.stat-label {
+    color: var(--muted-foreground);
+    font-size: var(--text-8);
+}
+
+.stat-tile-primary {
+    border-inline-start-color: var(--primary);
+}
+
+.stat-tile-primary .stat-value {
+    color: var(--primary);
+}
+
+.stat-tile-success {
+    border-inline-start-color: var(--success);
+}
+
+.stat-tile-success .stat-value {
+    color: var(--success);
+}
+
+.stat-tile-warning {
+    border-inline-start-color: var(--warning);
+}
+
+.stat-tile-warning .stat-value {
+    color: var(--warning);
+}
+
+/* ---- Account page: left-hand tab sidebar + content ---- */
+
+.account-layout {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 1.75rem;
+    align-items: start;
+}
+
+.account-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    position: sticky;
+    top: 5.5rem;
+}
+
+.account-nav-item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    font: inherit;
+    font-size: var(--text-7);
+    font-weight: var(--font-medium);
+    color: var(--muted-foreground);
+    background: none;
+    border: none;
+    padding: 0.6rem 0.85rem;
+    border-radius: var(--radius-medium);
+    cursor: pointer;
+}
+
+.account-nav-item:hover {
+    color: var(--foreground);
+    background-color: var(--accent);
+}
+
+.account-nav-item.is-active {
+    color: var(--primary);
+    background-color: color-mix(in srgb, var(--primary) 12%, transparent);
+}
+
+@media (max-width: 700px) {
+    .account-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .account-nav {
+        position: static;
+        flex-direction: row;
+        flex-wrap: wrap;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 0.5rem;
+    }
+}
+
+/* ---- Minimal auth shell: login / 2FA screens, no app chrome ---- */
+
+.auth-body {
+    min-height: 100vh;
+    background:
+        radial-gradient(circle at 15% 10%, color-mix(in srgb, var(--primary) 12%, transparent), transparent 45%),
+        radial-gradient(circle at 85% 90%, color-mix(in srgb, var(--primary) 10%, transparent), transparent 45%),
+        var(--background);
+}
+
+.auth-shell {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1.5rem;
+    padding-block-start: 2rem;
+}
+
+.auth-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-block-end: 1.75rem;
+    font-size: var(--text-3);
+    font-weight: var(--font-semibold);
+    letter-spacing: -0.01em;
+    color: var(--foreground);
+}
+
+.auth-brand-mark {
+    font-size: 1.5em;
+    line-height: 1;
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 380px;
+    box-shadow: var(--shadow-large);
+}
+
+.auth-card-wide {
+    max-width: 440px;
+}
+
+.auth-card header {
+    margin-block-end: 0.25rem;
+}
+
+.auth-card h1 {
+    font-size: var(--text-3);
+    margin-block-start: 0;
+}
+
+.auth-qr {
+    display: block;
+    margin: 0.5rem auto;
+    border-radius: var(--radius-medium);
+    border: 1px solid var(--border);
+    padding: 0.5rem;
+    background: light-dark(#fff, #fff);
+}
+
+/* Center radio buttons under their None/View/Edit column headers. */
+table td:has(> input[type="radio"]) {
+    text-align: center;
+}
+
+/* ---- Badges: role/status pills for list tables (Users, etc.) ---- */
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.15rem 0.6rem;
+    border-radius: var(--radius-full);
+    font-size: var(--text-8);
+    font-weight: var(--font-medium);
+    white-space: nowrap;
+    background-color: var(--accent);
+    color: var(--foreground);
+}
+
+.badge-success {
+    background-color: color-mix(in srgb, var(--success) 15%, transparent);
+    color: var(--success);
+}
+
+.badge-muted {
+    background-color: var(--muted);
+    color: var(--muted-foreground);
+}
+
+.badge-primary {
+    background-color: color-mix(in srgb, var(--primary) 15%, transparent);
+    color: var(--primary);
+}
+
+.badge-warning {
+    background-color: color-mix(in srgb, var(--warning) 18%, transparent);
+    color: var(--warning);
+}
+
+.badge-danger {
+    background-color: color-mix(in srgb, var(--danger) 15%, transparent);
+    color: var(--danger);
+}
+
+/* Round-initials avatar for a person row (Users lists, etc.). */
+.avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: var(--radius-full);
+    background-color: color-mix(in srgb, var(--primary) 15%, transparent);
+    color: var(--primary);
+    font-size: var(--text-8);
+    font-weight: var(--font-semibold);
+    text-transform: uppercase;
+    flex-shrink: 0;
+}
+
+.person-cell {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.person-cell .email {
+    color: var(--muted-foreground);
+    font-size: var(--text-8);
+}
+
+/* Wrap + cap width so row-action buttons (Edit/Activate, etc.) stack onto
+   two lines instead of widening the whole table on narrow screens. */
+.row-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    max-width: 7rem;
+}
+
+/* ---- List/section page headers (title + primary action) ---- */
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-block-end: 1.25rem;
+}
+
+.page-header h1 {
+    margin: 0;
+}
+
+/* ---- Small layout utilities (replace one-off inline `style="..."`) ---- */
+
+.inline-form {
+    display: inline;
+}
+
+.mt-3 {
+    margin-block-start: 1rem;
+}
+
+/* Plain clickable result list (search pickers) — no bullets. */
+.result-list {
+    list-style: none;
+    padding: 0;
+    margin: 0.5rem 0;
+}
+
+.result-list li + li {
+    margin-top: 0.25rem;
+}
+
+.result-list button {
+    width: 100%;
+    text-align: left;
+}
+
+/* position:fixed (not absolute) so this escapes the table's own
+   overflow-x:auto clipping and floats as an anchored dropdown. Positioned
+   by app.js under the active field; hidden via the `hidden` attribute. */
+.catalog-dropdown {
+    position: fixed;
+    z-index: 40;
+    max-height: 16rem;
+    overflow-y: auto;
+    background-color: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-medium);
+    box-shadow: var(--shadow-large);
+    padding: var(--space-2);
+}
+
+.catalog-dropdown .result-list {
+    margin: 0;
+}
+
+@media (max-width: 640px) {
+    .container {
+        padding: 1.25rem 1rem 2rem;
+    }
+
+    /* Below 640px the 200px flex-basis is wider than the viewport, so force one field per line. */
+    .hstack > [data-field] {
+        flex-basis: 100%;
+    }
+}
+
+/* display:contents makes this wrapper invisible on desktop, so its
+   children behave as direct flex items of .navbar, same as before the
+   wrapper existed. Kept at the end of the file: a rule wins ties at equal
+   specificity by being later in source order, so this must stay after
+   anything it overrides. */
+.navbar-collapsible {
+    display: contents;
+}
+
+@media (max-width: 860px) {
+    .navbar-toggle {
+        display: flex;
+    }
+
+    /* No spacer between toggle and brand on mobile, so the brand grows to fill the row. */
+    .navbar-brand {
+        flex: 1;
+    }
+
+    /* Becomes the real collapsing panel here — one box toggled as a whole. */
+    .navbar-collapsible {
+        display: block;
+        flex-basis: 100%;
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height var(--transition-fast);
+    }
+
+    .navbar-collapsible.is-open {
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+
+    .navbar-collapsible nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0.1rem;
+    }
+
+    .navbar-collapsible nav a {
+        padding: 0.6rem 0.7rem;
+        border-radius: var(--radius-small);
+    }
+
+    .navbar-search {
+        width: 100%;
+        max-width: none;
+        margin: 0.5rem 0;
+    }
+
+    .navbar-actions {
+        display: block;
+        margin-top: 0.5rem;
+        padding-top: 0.5rem;
+        border-top: 1px solid var(--border);
+    }
+
+    /* Dropdowns expand inline inside the panel instead of floating, so they can't run off a narrow screen. */
+    .navbar-collapsible .nav-dropdown-toggle {
+        width: 100%;
+        justify-content: space-between;
+        padding: 0.6rem 0.7rem;
+        border-radius: var(--radius-small);
+    }
+
+    .navbar-collapsible .nav-dropdown-menu {
+        position: static;
+        box-shadow: none;
+        border: none;
+        background: none;
+        padding: 0 0 0 0.75rem;
+    }
+
+    /* Full panel width now, so let the email show in full instead of truncating. */
+    .navbar-profile-label {
+        max-width: none;
+    }
+}
+

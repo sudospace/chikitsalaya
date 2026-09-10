@@ -1,0 +1,37 @@
+name: chikitsalaya
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: chikitsalaya
+      POSTGRES_PASSWORD: chikitsalaya
+      POSTGRES_DB: chikitsalaya
+    ports:
+      - "127.0.0.1:5442:5432"
+    volumes:
+      - chikitsalaya_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U chikitsalaya -d chikitsalaya"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PORT: 8090
+      DATABASE_URL: postgres://chikitsalaya:chikitsalaya@db:5432/chikitsalaya?sslmode=disable
+    volumes:
+      - chikitsalaya_uploads:/app/data/uploads
+    ports:
+      - "8090:8090"
+
+volumes:
+  chikitsalaya_pgdata:
+  chikitsalaya_uploads:

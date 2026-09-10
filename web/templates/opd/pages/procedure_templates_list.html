@@ -1,0 +1,34 @@
+{{define "title"}}Procedures — Chikitsalaya{{end}}
+{{define "content"}}
+<div class="page-header">
+    <h1>Procedures</h1>
+    <a href="/admin/procedures/new" class="button">New Procedure</a>
+</div>
+
+<article class="card">
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Department</th>
+                <th>Price</th>
+                <th>Status</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {{range .}}
+            <tr>
+                <td>{{.Name}}</td>
+                <td>{{.Department}}</td>
+                <td>{{if .Price}}{{.Price}}{{else}}—{{end}}</td>
+                <td>{{if .IsActive}}<span class="badge badge-success">Active</span>{{else}}<span class="badge badge-muted">Inactive</span>{{end}}</td>
+                <td><a href="/admin/procedures/{{.ID}}/edit" class="button small outline">Edit</a></td>
+            </tr>
+            {{else}}
+            <tr><td colspan="5">No procedures yet.</td></tr>
+            {{end}}
+        </tbody>
+    </table>
+</article>
+{{end}}

@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Book an appointment — {{.Company.Name}}</title>
+    <link rel="stylesheet" href="/static/oat/oat.min.css">
+    <link rel="stylesheet" href="/static/app.css">
+    <script src="/static/oat/oat.min.js" defer></script>
+    <script src="/static/htmx.min.js" defer></script>
+</head>
+<body>
+<main class="container">
+    <h1>{{.Company.Name}}</h1>
+
+    {{if .Info}}<div role="alert" data-variant="success">{{.Info}}</div>{{end}}
+    {{if .Error}}<div role="alert" data-variant="error">{{.Error}}</div>{{end}}
+
+    {{if not .Verified}}
+
+        <p>Enter your mobile number to book an appointment or check an existing one.</p>
+
+        {{if not .OTPRequested}}
+        <form method="post" action="/book/otp/request">
+            <label data-field>
+                Mobile number
+                <input type="tel" name="mobile" required value="{{.Mobile}}">
+            </label>
+            <button type="submit">Send OTP</button>
+        </form>
+        {{else}}
+        <form method="post" action="/book/otp/verify">
+            <input type="hidden" name="mobile" value="{{.Mobile}}">
+            <p>We've sent a 6-digit code to <strong>{{.Mobile}}</strong>.
+               <small>(dev mode: no SMS is actually sent — check the server console log for the code)</small></p>
+            <label data-field>
+                Verification code
+                <input type="text" name="code" required autofocus>
+            </label>
+            <button type="submit">Verify</button>
+        </form>
+        <form method="post" action="/book/otp/request" style="margin-top:0.5rem;">
+            <input type="hidden" name="mobile" value="{{.Mobile}}">
+            <button type="submit" class="outline small">Resend code</button>
+        </form>
+        {{end}}
+
+    {{else}}
+
+        <p><small>Verified as {{.Mobile}} &middot;
+            <form method="post" action="/book/logout" class="inline-form">
+                <button type="submit" class="link small">not you?</button>
+            </form>
+        </small></p>
+
+        {{if .Upcoming}}
+        <article class="card">
+            <header><h3>Your upcoming appointments</h3></header>
+            {{range .Upcoming}}
+            <div class="hstack" style="justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding: 0.5rem 0;">
+                <div>
+                    <strong>{{.ScheduledAt.Format "2 Jan 2006, 15:04"}}</strong> with {{.PractitionerName}}
+                    <br><small>Status: {{.Status}}{{if eq .Source "online"}} &middot; requested online{{end}}</small>
+                </div>
+                <div>
+                    <a href="/book/appointments/{{.ID}}/reschedule" class="button outline small">Reschedule</a>
+                    <form method="post" action="/book/appointments/{{.ID}}/cancel" class="inline-form">
+                        <button type="submit" class="outline small">Cancel</button>
+                    </form>
+                </div>
+            </div>
+            {{end}}
+        </article>
+        {{end}}
+
+        {{if .Past}}
+        <article class="card">
+            <header><h3>Past visits</h3></header>
+            {{range .Past}}
+            <p><small>{{.ScheduledAt.Format "2 Jan 2006, 15:04"}} with {{.PractitionerName}} &mdash; {{.Status}}</small></p>
+            {{end}}
+        </article>
+        {{end}}
+
+        <article class="card">
+            <header><h3>Book a new appointment</h3></header>
+            {{if not .Practitioners}}
+            <p>No doctors are available for online booking right now. Please call the clinic directly.</p>
+            {{else}}
+            <form method="post" action="/book" id="booking-form">
+                <div class="hstack">
+                    <div data-field>
+                        <label>Doctor</label>
+                        <select name="practitioner_id" aria-label="Doctor" required
+                                hx-get="/book/slots" hx-include="#booking-form" hx-target="#slot-grid"
+                                hx-trigger="{{if .PractitionerID}}load, {{end}}change">
+                            <option value="">Select a doctor</option>
+                            {{range .Practitioners}}
+                            <option value="{{.ID}}" {{if eq $.PractitionerID .ID}}selected{{end}}>{{.FullName}}</option>
+                            {{end}}
+                        </select>
+                    </div>
+                    <label data-field>
+                        Date
+                        <input type="date" name="date" value="{{.Date}}" required
+                               hx-get="/book/slots" hx-include="#booking-form" hx-target="#slot-grid" hx-trigger="change">
+                    </label>
+                </div>
+
+                <div data-field>
+                    <label>Available times</label>
+                    <div id="slot-grid">
+                        <p>Choose a doctor and date to see available times.</p>
+                    </div>
+                </div>
+
+                <label data-field>
+                    Reason for visit (optional)
+                    <textarea name="reason_for_visit"></textarea>
+                </label>
+
+                {{if not .Patient}}
+                <hr>
+                <h4>Your details</h4>
+                <div class="hstack">
+                    <label data-field>
+                        First name
+                        <input type="text" name="first_name" required>
+                    </label>
+                    <label data-field>
+                        Last name
+                        <input type="text" name="last_name">
+                    </label>
+                </div>
+                <div class="hstack">
+                    <div data-field>
+                        <label>Gender</label>
+                        <select name="gender" aria-label="Gender">
+                            <option value="">Select</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <label data-field>
+                        Age
+                        <input type="number" name="age" min="0" max="150">
+                    </label>
+                </div>
+                {{end}}
+
+                <p><small>Click one of the available times above to submit your request.</small></p>
+            </form>
+            {{end}}
+        </article>
+
+    {{end}}
+</main>
+</body>
+</html>

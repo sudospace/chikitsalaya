@@ -1,0 +1,24 @@
+{{define "catalog_search_results"}}
+<div data-catalog-results>
+{{if .Hits}}
+<ul class="result-list">
+    {{range .Hits}}
+    <li>
+        <button type="button" class="small outline" data-pick-catalog data-id="{{.ID}}" data-value="{{.Label}}">
+            {{.Label}}
+        </button>
+    </li>
+    {{end}}
+</ul>
+{{else if .Query}}
+<ul class="result-list">
+    <li>
+        <button type="button" class="small outline" data-quick-add-inline
+                data-endpoint="{{.QuickAddEndpoint}}" data-field-name="{{.QuickAddField}}" data-value="{{.Query}}">
+            + Add "{{.Query}}" as new {{.Kind}}
+        </button>
+    </li>
+</ul>
+{{end}}
+</div>
+{{end}}

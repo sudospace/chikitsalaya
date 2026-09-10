@@ -1,0 +1,32 @@
+{{define "title"}}Service Units — Chikitsalaya{{end}}
+{{define "content"}}
+<div class="page-header">
+    <h1>Service Units</h1>
+    <a href="/admin/service-units/new" class="button">New Service Unit</a>
+</div>
+
+<article class="card">
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {{range .}}
+            <tr>
+                <td>{{.Name}}</td>
+                <td>{{.UnitType}}</td>
+                <td>{{if .IsActive}}<span class="badge badge-success">Active</span>{{else}}<span class="badge badge-muted">Inactive</span>{{end}}</td>
+                <td><a href="/admin/service-units/{{.ID}}/edit" class="button small outline">Edit</a></td>
+            </tr>
+            {{else}}
+            <tr><td colspan="4">No service units yet.</td></tr>
+            {{end}}
+        </tbody>
+    </table>
+</article>
+{{end}}

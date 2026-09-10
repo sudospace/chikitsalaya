@@ -1,0 +1,297 @@
+{{define "title"}}Consultation — {{.Encounter.PatientName}} — Chikitsalaya{{end}}
+{{define "content"}}
+<div class="page-header">
+    <h1>{{.Encounter.PatientName}}</h1>
+    <div>
+        {{if eq .Encounter.Status "in_progress"}}
+        <span class="badge badge-warning">In progress</span>
+        {{else}}
+        <span class="badge badge-success">Completed</span>
+        <a href="/encounters/{{.Encounter.ID}}/print" class="button outline">Print</a>
+        <form method="post" action="/encounters/{{.Encounter.ID}}/reopen" class="inline-form">
+            <button type="submit" class="outline" data-variant="danger">Reopen for editing</button>
+        </form>
+        {{end}}
+    </div>
+</div>
+<p><small>Practitioner: {{.Encounter.PractitionerName}} &middot; Started {{.Encounter.CreatedAt.Format "2 Jan 2006 15:04"}}</small></p>
+
+{{if .Error}}
+<div role="alert" data-variant="error">{{.Error}}</div>
+{{end}}
+
+{{$id := .Encounter.ID}}
+{{$locked := ne .Encounter.Status "in_progress"}}
+
+<article class="card">
+    <header><h3>Consultation notes</h3></header>
+    <form method="post" action="/encounters/{{$id}}">
+        <label data-field>
+            Chief complaint
+            <textarea name="chief_complaint" {{if $locked}}disabled{{end}}>{{.Encounter.ChiefComplaint}}</textarea>
+        </label>
+        <label data-field>
+            History of present illness
+            <textarea name="history_of_present_illness" {{if $locked}}disabled{{end}}>{{.Encounter.HistoryOfPresentIllness}}</textarea>
+        </label>
+        <label data-field>
+            Examination notes
+            <textarea name="examination_notes" {{if $locked}}disabled{{end}}>{{.Encounter.ExaminationNotes}}</textarea>
+        </label>
+        <label data-field>
+            Assessment
+            <textarea name="assessment" {{if $locked}}disabled{{end}}>{{.Encounter.Assessment}}</textarea>
+        </label>
+        <label data-field>
+            Plan
+            <textarea name="plan" {{if $locked}}disabled{{end}}>{{.Encounter.Plan}}</textarea>
+        </label>
+        <div class="hstack">
+            <label data-field>
+                Next review date
+                <input type="date" name="next_review_date" value="{{if .Encounter.NextReviewDate}}{{.Encounter.NextReviewDate.Format "2006-01-02"}}{{end}}" {{if $locked}}disabled{{end}}>
+            </label>
+            <div data-field>
+                <label>Review by</label>
+                {{$reviewBy := .Encounter.ReviewByPractitionerID}}
+                <select name="review_by_practitioner_id" aria-label="Review by" {{if $locked}}disabled{{end}}>
+                    <option value="">None</option>
+                    {{range .Practitioners}}
+                    <option value="{{.ID}}" {{if and $reviewBy (eq $reviewBy.ID .ID)}}selected{{end}}>{{.FullName}}</option>
+                    {{end}}
+                </select>
+            </div>
+        </div>
+        {{if not $locked}}<button type="submit">Save notes</button>{{end}}
+    </form>
+</article>
+
+<article class="card">
+    <header><h3>Vitals</h3></header>
+    <form method="post" action="/encounters/{{$id}}/vitals">
+        <div class="hstack">
+            <label data-field>Height (cm)<input type="number" step="0.1" name="height_cm" value="{{if .Vitals}}{{.Vitals.HeightCM}}{{end}}" {{if $locked}}disabled{{end}}></label>
+            <label data-field>Weight (kg)<input type="number" step="0.1" name="weight_kg" value="{{if .Vitals}}{{.Vitals.WeightKG}}{{end}}" {{if $locked}}disabled{{end}}></label>
+            <label data-field>BMI<input type="text" value="{{if .Vitals}}{{.Vitals.BMI}}{{end}}" disabled></label>
+            <label data-field>Temp (&deg;C)<input type="number" step="0.1" name="temperature_c" value="{{if .Vitals}}{{.Vitals.TemperatureC}}{{end}}" {{if $locked}}disabled{{end}}></label>
+        </div>
+        <div class="hstack">
+            <label data-field>Pulse (bpm)<input type="number" name="pulse_bpm" value="{{if .Vitals}}{{.Vitals.PulseBPM}}{{end}}" {{if $locked}}disabled{{end}}></label>
+            <label data-field>Resp. rate<input type="number" name="resp_rate" value="{{if .Vitals}}{{.Vitals.RespRate}}{{end}}" {{if $locked}}disabled{{end}}></label>
+            <label data-field>BP systolic<input type="number" name="bp_systolic" value="{{if .Vitals}}{{.Vitals.BPSystolic}}{{end}}" {{if $locked}}disabled{{end}}></label>
+            <label data-field>BP diastolic<input type="number" name="bp_diastolic" value="{{if .Vitals}}{{.Vitals.BPDiastolic}}{{end}}" {{if $locked}}disabled{{end}}></label>
+            <label data-field>SpO2 (%)<input type="number" name="spo2" value="{{if .Vitals}}{{.Vitals.SpO2}}{{end}}" {{if $locked}}disabled{{end}}></label>
+        </div>
+        {{if not $locked}}<button type="submit">Save vitals</button>{{end}}
+    </form>
+</article>
+
+<article class="card">
+    <header><h3>Diagnoses</h3></header>
+    <table>
+        <thead><tr><th>Code</th><th>Description</th><th>Type</th><th></th></tr></thead>
+        <tbody>
+            {{range .Diagnoses}}
+            <tr>
+                <td>{{if .ICD10Code}}{{.ICD10Code}}{{else}}—{{end}}</td>
+                <td>{{.Description}}</td>
+                <td>{{.DiagnosisType}}</td>
+                <td>
+                    {{if not $locked}}
+                    <form method="post" action="/encounters/{{$id}}/diagnoses/{{.ID}}/delete" class="inline-form">
+                        <button type="submit" class="small outline" data-variant="danger">Remove</button>
+                    </form>
+                    {{end}}
+                </td>
+            </tr>
+            {{else}}
+            <tr><td colspan="4">No diagnoses recorded yet.</td></tr>
+            {{end}}
+            {{if not $locked}}
+            <tr>
+                <td>
+                    <input type="search" name="icd10_search" form="diagnosis-form" placeholder="Search ICD-10, e.g. cough, J06.9" autocomplete="off"
+                           hx-get="/encounters/{{$id}}/icd10-search" hx-trigger="keyup changed delay:300ms"
+                           hx-target="#icd10-results" hx-swap="innerHTML">
+                </td>
+                <td><input type="text" name="description" form="diagnosis-form" required placeholder="Diagnosis description"></td>
+                <td>
+                    <select name="diagnosis_type" form="diagnosis-form" aria-label="Diagnosis type">
+                        <option value="primary">Primary</option>
+                        <option value="secondary">Secondary</option>
+                    </select>
+                </td>
+                <td><button type="submit" form="diagnosis-form" class="small">Add</button></td>
+            </tr>
+            {{end}}
+        </tbody>
+    </table>
+    <div id="icd10-results"></div>
+    {{if not $locked}}
+    <form id="diagnosis-form" method="post" action="/encounters/{{$id}}/diagnoses">
+        <input type="hidden" name="icd10_code">
+    </form>
+    {{end}}
+</article>
+
+<article class="card">
+    <header><h3>Prescription</h3></header>
+    <table>
+        <thead><tr><th>Drug</th><th>Dosage</th><th>Duration</th><th>Qty</th><th>Remark</th><th></th></tr></thead>
+        <tbody>
+            {{range .PrescriptionItems}}
+            <tr>
+                <td>{{.DrugName}}</td>
+                <td>{{.DosageText}}</td>
+                <td>{{.DurationText}}</td>
+                <td>{{if .Quantity}}{{.Quantity}}{{end}}</td>
+                <td>{{.Remark}}</td>
+                <td>
+                    {{if not $locked}}
+                    <form method="post" action="/encounters/{{$id}}/prescription-items/{{.ID}}/delete" class="inline-form">
+                        <button type="submit" class="small outline" data-variant="danger">Remove</button>
+                    </form>
+                    {{end}}
+                </td>
+            </tr>
+            {{else}}
+            <tr><td colspan="6">No medications prescribed yet.</td></tr>
+            {{end}}
+            {{if not $locked}}
+            <tr>
+                <td>
+                    <input type="text" name="drug_name" form="prescription-form" data-live-search data-endpoint="/catalog/drugs-search" data-results="rx-drug-results" data-hidden-id="drug_id"
+                           placeholder="Type at least 3 letters..." autocomplete="off" required>
+                </td>
+                <td>
+                    <input type="text" name="dosage_text" form="prescription-form" data-dropdown-search data-options-id="dosage-options-data" data-results="rx-dosage-results" data-hidden-id="dosage_id" data-lookup-category="dosage" data-quick-add-endpoint="/catalog/quick-add-lookup-value"
+                           placeholder="e.g. Twice a day" autocomplete="off">
+                </td>
+                <td>
+                    <input type="text" name="duration_text" form="prescription-form" data-dropdown-search data-options-id="duration-options-data" data-results="rx-duration-results" data-hidden-id="duration_id" data-lookup-category="duration" data-quick-add-endpoint="/catalog/quick-add-lookup-value"
+                           placeholder="e.g. 5 Days" autocomplete="off">
+                </td>
+                <td><input type="number" step="1" name="quantity" form="prescription-form" style="width: 4.5rem;"></td>
+                <td><input type="text" name="remark" form="prescription-form"></td>
+                <td><button type="submit" form="prescription-form" class="small">Add</button></td>
+            </tr>
+            {{end}}
+        </tbody>
+    </table>
+    <div id="rx-drug-results" class="catalog-dropdown" hidden></div>
+    <div id="rx-dosage-results" class="catalog-dropdown" hidden></div>
+    <div id="rx-duration-results" class="catalog-dropdown" hidden></div>
+    <p><small>Drug names are looked up from your clinic's catalog as you type (3+ letters); if nothing matches, an
+        "+ Add" option appears so it becomes a real catalog entry. Dosage/duration show your clinic's existing values
+        as soon as you click into the field, with the same "+ Add" option if nothing matches. Quantity is optional
+        and decrements stock only when the drug is picked from the catalog.</small></p>
+
+    {{if not $locked}}
+    <form id="prescription-form" method="post" action="/encounters/{{$id}}/prescription-items">
+        <input type="hidden" name="drug_id">
+        <input type="hidden" name="dosage_id">
+        <input type="hidden" name="duration_id">
+    </form>
+    {{end}}
+    <script type="application/json" id="dosage-options-data">{{.DosageOptionsJSON}}</script>
+    <script type="application/json" id="duration-options-data">{{.DurationOptionsJSON}}</script>
+</article>
+
+<article class="card">
+    <header><h3>Lab orders</h3></header>
+    <table>
+        <thead><tr><th>Test</th><th>Status</th><th>Result</th><th></th></tr></thead>
+        <tbody>
+            {{range .LabOrders}}
+            <tr>
+                <td>{{.TestName}}</td>
+                <td>{{template "lab_order_status_badge" .Status}}</td>
+                <td>{{if eq .Status "resulted"}}{{.ResultValue}} {{.ResultUnit}}{{else}}—{{end}}</td>
+                <td>
+                    {{if ne .Status "resulted"}}
+                    <form method="post" action="/encounters/{{$id}}/lab-orders/{{.ID}}/result" class="inline-form">
+                        <input type="text" name="result_value" placeholder="Value" size="6">
+                        <input type="text" name="result_unit" placeholder="Unit" size="6">
+                        <button type="submit" class="small outline">Record result</button>
+                    </form>
+                    {{end}}
+                    {{if and (not $locked) (ne .Status "resulted")}}
+                    <form method="post" action="/encounters/{{$id}}/lab-orders/{{.ID}}/delete" class="inline-form">
+                        <button type="submit" class="small outline" data-variant="danger">Remove</button>
+                    </form>
+                    {{end}}
+                </td>
+            </tr>
+            {{else}}
+            <tr><td colspan="4">No lab tests ordered yet.</td></tr>
+            {{end}}
+            {{if not $locked}}
+            <tr>
+                <td>
+                    <input type="text" name="test_name" form="lab-order-form" data-live-search data-endpoint="/catalog/lab-tests-search" data-results="lab-test-results" data-hidden-id="lab_test_template_id"
+                           placeholder="Type at least 3 letters..." autocomplete="off" required>
+                </td>
+                <td colspan="2"><input type="text" name="comment" form="lab-order-form" placeholder="Comment"></td>
+                <td><button type="submit" form="lab-order-form" class="small">Order</button></td>
+            </tr>
+            {{end}}
+        </tbody>
+    </table>
+    <div id="lab-test-results" class="catalog-dropdown" hidden></div>
+
+    {{if not $locked}}
+    <form id="lab-order-form" method="post" action="/encounters/{{$id}}/lab-orders">
+        <input type="hidden" name="lab_test_template_id">
+    </form>
+    {{end}}
+</article>
+
+<article class="card">
+    <header><h3>Procedures</h3></header>
+    <table>
+        <thead><tr><th>Procedure</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+            {{range .ProcedureOrders}}
+            <tr>
+                <td>{{.ProcedureName}}</td>
+                <td>{{template "procedure_status_badge" .Status}}</td>
+                <td>
+                    {{if not $locked}}
+                    <form method="post" action="/encounters/{{$id}}/procedure-orders/{{.ID}}/delete" class="inline-form">
+                        <button type="submit" class="small outline" data-variant="danger">Remove</button>
+                    </form>
+                    {{end}}
+                </td>
+            </tr>
+            {{else}}
+            <tr><td colspan="3">No procedures ordered yet.</td></tr>
+            {{end}}
+            {{if not $locked}}
+            <tr>
+                <td>
+                    <input type="text" name="procedure_name" form="procedure-order-form" data-live-search data-endpoint="/catalog/procedures-search" data-results="procedure-results" data-hidden-id="procedure_template_id"
+                           placeholder="Type at least 3 letters..." autocomplete="off" required>
+                </td>
+                <td><input type="text" name="comments" form="procedure-order-form" placeholder="Comments"></td>
+                <td><button type="submit" form="procedure-order-form" class="small">Order</button></td>
+            </tr>
+            {{end}}
+        </tbody>
+    </table>
+    <div id="procedure-results" class="catalog-dropdown" hidden></div>
+
+    {{if not $locked}}
+    <form id="procedure-order-form" method="post" action="/encounters/{{$id}}/procedure-orders">
+        <input type="hidden" name="procedure_template_id">
+    </form>
+    {{end}}
+</article>
+
+{{if not $locked}}
+<form method="post" action="/encounters/{{$id}}/complete">
+    <button type="submit" data-variant="secondary">Complete consultation</button>
+</form>
+{{end}}
+
+<p><a href="/appointments">&larr; Back to appointments</a></p>
+{{end}}

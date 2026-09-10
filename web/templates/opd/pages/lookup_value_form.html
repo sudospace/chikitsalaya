@@ -1,0 +1,37 @@
+{{define "title"}}{{if .Value.ID}}Edit Value{{else}}New Value{{end}} — Chikitsalaya{{end}}
+{{define "content"}}
+<h1>{{if .Value.ID}}Edit Value{{else}}New Value{{end}}</h1>
+
+{{if .Error}}
+<div role="alert" data-variant="error">{{.Error}}</div>
+{{end}}
+
+<article class="card">
+<form method="post" action="{{.Action}}">
+    <div class="hstack">
+        <div data-field>
+            <label>Category</label>
+            {{$current := .Value.Category}}
+            <select name="category" aria-label="Category" required>
+                {{range .Categories}}
+                <option value="{{.}}" {{if eq $current .}}selected{{end}}>{{.}}</option>
+                {{end}}
+            </select>
+        </div>
+        <label data-field>
+            Value
+            <input type="text" name="value" value="{{.Value.Value}}" required>
+        </label>
+        <label data-field>
+            Sort order
+            <input type="number" name="sort_order" value="{{.Value.SortOrder}}">
+        </label>
+    </div>
+
+    <menu class="buttons">
+        <li><button type="submit">Save</button></li>
+        <li><a href="/admin/lookup-values" class="button outline">Cancel</a></li>
+    </menu>
+</form>
+</article>
+{{end}}

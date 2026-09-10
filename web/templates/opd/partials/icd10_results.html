@@ -1,0 +1,13 @@
+{{define "icd10_results"}}
+{{if .Results}}
+<ul class="result-list">
+    {{range .Results}}
+    <li>
+        <button type="button" class="small outline" data-icd10-pick data-code="{{.Code}}" data-description="{{.Description}}">
+            {{.Code}} — {{.Description}}
+        </button>
+    </li>
+    {{end}}
+</ul>
+{{end}}
+{{end}}

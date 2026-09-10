@@ -1,0 +1,125 @@
+{{define "title"}}New User — Chikitsalaya{{end}}
+{{define "content"}}
+<h1>New User</h1>
+
+{{if .Error}}
+<div role="alert" data-variant="error">{{.Error}}</div>
+{{end}}
+
+<article class="card">
+<form method="post" action="/admin/users">
+    <div class="hstack">
+        <label data-field>
+            Full name
+            <input type="text" name="full_name" required>
+        </label>
+        <label data-field>
+            Phone (optional)
+            <input type="tel" name="phone">
+        </label>
+    </div>
+
+    <div class="hstack">
+        <label data-field>
+            Email
+            <input type="email" name="email" required>
+        </label>
+    </div>
+
+    <div class="hstack">
+        <label data-field>
+            Password
+            <input type="password" name="password" required autocomplete="new-password">
+        </label>
+        <label data-field>
+            Confirm password
+            <input type="password" name="confirm_password" required autocomplete="new-password">
+        </label>
+    </div>
+
+    <label data-field>
+        Address (optional)
+        <textarea name="address"></textarea>
+    </label>
+
+    <div class="hstack">
+        <label data-field>
+            Emergency contact name (optional)
+            <input type="text" name="emergency_contact_name">
+        </label>
+        <label data-field>
+            Emergency contact phone (optional)
+            <input type="tel" name="emergency_contact_phone">
+        </label>
+    </div>
+
+    <div data-field>
+        <label>Role</label>
+        <select name="role" aria-label="Role" required data-role-select data-role-panel-target="doctor-practitioner-section">
+            <option value="doctor">Doctor</option>
+            <option value="receptionist">Receptionist</option>
+            <option value="admin">Admin</option>
+        </select>
+    </div>
+
+    <div id="doctor-practitioner-section" data-field>
+        <label>Practitioner record</label>
+        <p><small>A doctor's login needs a practitioner record to show up in scheduling and appointments — create
+            one now, or link an existing practitioner if they're already listed (e.g. giving a second login to the
+            same doctor).</small></p>
+        <div class="hstack">
+            <label><input type="radio" name="practitioner_mode" value="new" data-practitioner-mode checked> Create a new practitioner</label>
+            <label><input type="radio" name="practitioner_mode" value="existing" data-practitioner-mode> Link an existing one</label>
+        </div>
+
+        <div data-practitioner-panel="new">
+            <p><small>Uses the full name entered above.</small></p>
+            <div class="hstack">
+                <label data-field>
+                    Qualification
+                    <input type="text" name="practitioner_qualification" placeholder="e.g. MBBS, MD">
+                </label>
+                <label data-field>
+                    Specialization
+                    <input type="text" name="practitioner_specialization">
+                </label>
+            </div>
+        </div>
+
+        <div data-practitioner-panel="existing" hidden>
+            <div data-field>
+                <label>Practitioner</label>
+                <select name="practitioner_id" aria-label="Practitioner">
+                    <option value="">Select a practitioner</option>
+                    {{range .Practitioners}}
+                    <option value="{{.ID}}">{{.FullName}}</option>
+                    {{end}}
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <h3>Module access</h3>
+    <p><small>What this login can reach. Defaults to the usual doctor/receptionist access — adjust any module below if needed.</small></p>
+    <table>
+        <thead><tr><th>Module</th><th>None</th><th>View</th><th>Edit</th></tr></thead>
+        <tbody>
+            {{range .Modules}}
+            {{$current := index $.Permissions .Key}}
+            <tr>
+                <td>{{.Label}}</td>
+                <td><input type="radio" name="perm_{{.Key}}" value="" {{if eq $current ""}}checked{{end}} aria-label="No access to {{.Label}}"></td>
+                <td><input type="radio" name="perm_{{.Key}}" value="view" {{if eq $current "view"}}checked{{end}} aria-label="View {{.Label}}"></td>
+                <td><input type="radio" name="perm_{{.Key}}" value="edit" {{if eq $current "edit"}}checked{{end}} aria-label="Edit {{.Label}}"></td>
+            </tr>
+            {{end}}
+        </tbody>
+    </table>
+
+    <menu class="buttons">
+        <li><button type="submit">Create</button></li>
+        <li><a href="/admin/users" class="button outline">Cancel</a></li>
+    </menu>
+</form>
+</article>
+{{end}}

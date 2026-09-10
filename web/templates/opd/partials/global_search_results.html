@@ -1,0 +1,30 @@
+{{define "global_search_results"}}
+{{if .Query}}
+{{if or .Patients .Practitioners}}
+{{if .Patients}}
+<div class="search-group">
+    <div class="search-group-label">Patients</div>
+    {{range .Patients}}
+    <a href="/patients/{{.ID}}" class="search-result">
+        <strong>{{.FirstName}} {{.LastName}}</strong>
+        <span>{{.MRN}}{{if .Phone}} &middot; {{.Phone}}{{end}}</span>
+    </a>
+    {{end}}
+</div>
+{{end}}
+{{if .Practitioners}}
+<div class="search-group">
+    <div class="search-group-label">Practitioners</div>
+    {{range .Practitioners}}
+    <a href="/practitioners/{{.ID}}" class="search-result">
+        <strong>{{.FullName}}</strong>
+        <span>{{if .Specialization}}{{.Specialization}}{{end}}</span>
+    </a>
+    {{end}}
+</div>
+{{end}}
+{{else}}
+<div class="search-empty">No matches for "{{.Query}}".</div>
+{{end}}
+{{end}}
+{{end}}

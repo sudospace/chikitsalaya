@@ -1,0 +1,29 @@
+{{define "title"}}Patients — Chikitsalaya{{end}}
+{{define "content"}}
+<div class="page-header">
+    <h1>Patients</h1>
+    <a href="/patients/new" class="button">New Patient</a>
+</div>
+
+<article class="card">
+    <input type="search" name="q" value="{{.Query}}" placeholder="Search by name, phone, or MRN..."
+           aria-label="Search patients"
+           hx-get="/patients/search" hx-trigger="keyup changed delay:300ms, search"
+           hx-target="#patient-rows" hx-swap="innerHTML">
+
+    <table class="mt-3">
+        <thead>
+            <tr>
+                <th>MRN</th>
+                <th>Name</th>
+                <th>Sex</th>
+                <th>Phone</th>
+                <th>Blood Group</th>
+            </tr>
+        </thead>
+        <tbody id="patient-rows">
+            {{template "patient_rows" .Patients}}
+        </tbody>
+    </table>
+</article>
+{{end}}
