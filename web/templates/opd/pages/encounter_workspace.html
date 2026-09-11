@@ -8,7 +8,7 @@
         {{else}}
         <span class="badge badge-success">Completed</span>
         {{if .CanBilling}}<a href="/billing/new?encounter_id={{.Encounter.ID}}" class="button">Create Invoice</a>{{end}}
-        <a href="/encounters/{{.Encounter.ID}}/print" class="button outline">Print</a>
+        <a href="/encounters/{{.Encounter.ID}}/print" class="button outline" target="_blank" rel="noopener">Print</a>
         <form method="post" action="/encounters/{{.Encounter.ID}}/reopen" class="inline-form">
             <button type="submit" class="outline" data-variant="danger">Reopen for editing</button>
         </form>

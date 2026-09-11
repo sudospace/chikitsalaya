@@ -22,6 +22,7 @@ type Chrome struct {
 	UserInitial      string // precomputed for the avatar badge; templates have no slicing helper
 	RoleLabel        string // e.g. "Doctor", or "Admin + Doctor" while acting
 	CanBilling       bool   // gates the "Billing" nav link
+	CanReports       bool   // gates the "Reports" nav link
 }
 
 type ChromeResolver func(r *http.Request) Chrome

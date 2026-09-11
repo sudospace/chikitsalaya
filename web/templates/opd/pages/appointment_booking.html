@@ -36,20 +36,6 @@
             Appointment type
             <input type="text" name="appointment_type" placeholder="e.g. Consultation, Follow-up">
         </label>
-        <div data-field>
-            <label>Fee</label>
-            <select data-fee-type aria-label="Fee type"
-                    data-first-fee="{{if .Company.FirstConsultationFee}}{{.Company.FirstConsultationFee}}{{end}}"
-                    data-followup-fee="{{if .Company.FollowUpFee}}{{.Company.FollowUpFee}}{{end}}">
-                <option value="custom">Custom</option>
-                {{if .Company.FirstConsultationFee}}<option value="first">First consultation ({{.Company.FirstConsultationFee}})</option>{{end}}
-                {{if .Company.FollowUpFee}}<option value="followup">Follow-up ({{.Company.FollowUpFee}})</option>{{end}}
-            </select>
-        </div>
-        <label data-field>
-            Amount (optional)
-            <input type="number" name="fee_amount" step="0.01" min="0" placeholder="e.g. 500" data-fee-amount>
-        </label>
     </div>
 
     <label data-field>

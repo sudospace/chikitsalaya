@@ -31,6 +31,7 @@ import (
 	"chikitsalaya/internal/opd/onboarding"
 	"chikitsalaya/internal/opd/patient"
 	"chikitsalaya/internal/opd/practitioner"
+	"chikitsalaya/internal/opd/reports"
 	"chikitsalaya/internal/opd/schedule"
 	"chikitsalaya/internal/opd/staff"
 	"chikitsalaya/internal/web"
@@ -105,12 +106,14 @@ func main() {
 		actingAsDoctor := auth.IsActingAsDoctor(sm, r)
 		userID := auth.CurrentUserID(sm, r)
 		canBilling, _ := permStore.HasAccess(r.Context(), role, userID, auth.ModuleBilling, auth.AccessView)
+		canReports, _ := permStore.HasAccess(r.Context(), role, userID, auth.ModuleReports, auth.AccessView)
 		chrome := web.Chrome{
 			Role:             role,
 			IsAdmin:          role == auth.RoleAdmin,
 			IsActingAsDoctor: actingAsDoctor,
 			RoleLabel:        roleLabels[role],
 			CanBilling:       canBilling,
+			CanReports:       canReports,
 		}
 		if chrome.RoleLabel == "" {
 			chrome.RoleLabel = role
@@ -168,6 +171,9 @@ func main() {
 	billingStore := billing.NewStore(pool)
 	billingHandlers := billing.NewHandlers(billingStore, encounterStore, appointmentStore, patientStore,
 		practitionerStore, companyStore, mastersStore, inventoryStore, userStore, sm, renderer)
+
+	reportsStore := reports.NewStore(pool)
+	reportsHandlers := reports.NewHandlers(reportsStore, companyStore, practitionerStore, userStore, sm, renderer)
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
@@ -356,7 +362,6 @@ func main() {
 			ap.Get("/slots", appointmentHandlers.Slots)
 			ap.With(edit(auth.ModuleAppointments)).Post("/", appointmentHandlers.Create)
 			ap.With(edit(auth.ModuleAppointments)).Post("/{id}/status", appointmentHandlers.UpdateStatus)
-			ap.With(edit(auth.ModuleAppointments)).Post("/{id}/fee", appointmentHandlers.SetFee)
 			ap.With(edit(auth.ModulePatients)).Post("/new/patients", appointmentHandlers.CreatePatientForBooking)
 		})
 
@@ -411,6 +416,12 @@ func main() {
 			br.Get("/invoices/{id}/print", billingHandlers.PrintInvoice)
 			br.With(edit(auth.ModuleBilling)).Post("/invoices/{id}/payments", billingHandlers.RecordPayment)
 			br.With(edit(auth.ModuleBilling)).Post("/invoices/{id}/cancel", billingHandlers.CancelInvoice)
+		})
+
+		pr.Route("/reports", func(rr chi.Router) {
+			rr.Use(view(auth.ModuleReports))
+			rr.Get("/", reportsHandlers.Index)
+			rr.Get("/ledger.csv", reportsHandlers.LedgerCSV)
 		})
 	})
 

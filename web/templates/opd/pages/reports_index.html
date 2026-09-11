@@ -1,0 +1,112 @@
+{{define "title"}}Reports — Chikitsalaya{{end}}
+{{define "content"}}
+<div class="page-header">
+    <h1>Reports &amp; Stats</h1>
+    <a href="/reports/ledger.csv?range={{.Range}}{{if not .IsDoctorScoped}}{{if .SelectedPractID}}&practitioner_id={{.SelectedPractID}}{{end}}{{end}}" class="button outline">Download CSV</a>
+</div>
+
+<div class="hstack">
+    <a href="/reports?range=today" class="button small {{if ne .Range "today"}}outline{{end}}">Today</a>
+    <a href="/reports?range=week" class="button small {{if ne .Range "week"}}outline{{end}}">This Week</a>
+    <a href="/reports?range=month" class="button small {{if ne .Range "month"}}outline{{end}}">This Month</a>
+    <a href="/reports?range=fy" class="button small {{if ne .Range "fy"}}outline{{end}}">This FY</a>
+</div>
+
+<form method="get" action="/reports">
+    <input type="hidden" name="range" value="custom">
+    <div class="hstack">
+        <label data-field>
+            From
+            <input type="date" name="from" value="{{.From}}">
+        </label>
+        <label data-field>
+            To
+            <input type="date" name="to" value="{{.To}}">
+        </label>
+        {{if not .IsDoctorScoped}}
+        <div data-field>
+            <label>Doctor</label>
+            <select name="practitioner_id" aria-label="Doctor">
+                <option value="">All doctors</option>
+                {{$selected := .SelectedPractID}}
+                {{range .Practitioners}}
+                <option value="{{.ID}}" {{if eq .ID $selected}}selected{{end}}>{{.FullName}}</option>
+                {{end}}
+            </select>
+        </div>
+        {{end}}
+        <div data-field>
+            <label>&nbsp;</label>
+            <button type="submit">Apply</button>
+        </div>
+    </div>
+</form>
+
+<article class="card">
+    <header><h3>Revenue{{if .IsDoctorScoped}} (your own){{else}} by doctor{{end}}</h3></header>
+    <table>
+        <thead>
+            <tr>
+                {{if not .IsDoctorScoped}}<th>Doctor</th>{{end}}
+                <th>Invoices</th>
+                <th>Billed</th>
+                <th>Collected</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{range .ByPractitioner}}
+            <tr>
+                {{if not $.IsDoctorScoped}}<td>{{.PractitionerName}}</td>{{end}}
+                <td>{{.InvoiceCount}}</td>
+                <td>{{printf "%.2f" .Billed}}</td>
+                <td>{{printf "%.2f" .Collected}}</td>
+            </tr>
+            {{else}}
+            <tr><td colspan="{{if .IsDoctorScoped}}3{{else}}4{{end}}">No invoices in this range.</td></tr>
+            {{end}}
+        </tbody>
+    </table>
+</article>
+
+<article class="card">
+    <header><h3>Lab tests</h3></header>
+    <table>
+        <thead><tr><th>Test</th><th>Count</th><th>Amount</th></tr></thead>
+        <tbody>
+            {{range .ByLab}}
+            <tr><td>{{.Description}}</td><td>{{.Count}}</td><td>{{printf "%.2f" .Amount}}</td></tr>
+            {{else}}
+            <tr><td colspan="3">No lab charges in this range.</td></tr>
+            {{end}}
+        </tbody>
+    </table>
+</article>
+
+<article class="card">
+    <header><h3>Procedures</h3></header>
+    <table>
+        <thead><tr><th>Procedure</th><th>Count</th><th>Amount</th></tr></thead>
+        <tbody>
+            {{range .ByProcedure}}
+            <tr><td>{{.Description}}</td><td>{{.Count}}</td><td>{{printf "%.2f" .Amount}}</td></tr>
+            {{else}}
+            <tr><td colspan="3">No procedure charges in this range.</td></tr>
+            {{end}}
+        </tbody>
+    </table>
+</article>
+
+<article class="card">
+    <header><h3>Medications</h3></header>
+    <table>
+        <thead><tr><th>Drug</th><th>Count</th><th>Amount</th></tr></thead>
+        <tbody>
+            {{range .ByDrug}}
+            <tr><td>{{.Description}}</td><td>{{.Count}}</td><td>{{printf "%.2f" .Amount}}</td></tr>
+            {{else}}
+            <tr><td colspan="3">No drug charges in this range.</td></tr>
+            {{end}}
+        </tbody>
+    </table>
+</article>
+{{end}}

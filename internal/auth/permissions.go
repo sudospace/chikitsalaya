@@ -24,6 +24,7 @@ const (
 	ModuleProcedures      = "procedures"
 	ModuleUsers           = "users"
 	ModuleBilling         = "billing"
+	ModuleReports         = "reports"
 )
 
 const (
@@ -53,6 +54,7 @@ var AllModules = []ModuleInfo{
 	{ModuleProcedures, "Procedures"},
 	{ModuleUsers, "Users"},
 	{ModuleBilling, "Billing"},
+	{ModuleReports, "Reports & Stats"},
 }
 
 // StaffDefaultPermissions is pre-checked on a doctor/receptionist creation

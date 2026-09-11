@@ -306,7 +306,6 @@ func (h *Handlers) Create(w http.ResponseWriter, r *http.Request) {
 		Source:          "staff",
 		AppointmentType: r.PostForm.Get("appointment_type"),
 		ReasonForVisit:  r.PostForm.Get("reason_for_visit"),
-		FeeAmount:       parseOptionalFloat(r.PostForm.Get("fee_amount")),
 		CreatedBy:       &createdBy,
 	})
 	if err != nil {
@@ -349,41 +348,3 @@ func (h *Handlers) UpdateStatus(w http.ResponseWriter, r *http.Request) {
 		"&date="+appt.ScheduledAt.Format(dateLayout), http.StatusSeeOther)
 }
 
-func parseOptionalFloat(v string) *float64 {
-	if v == "" {
-		return nil
-	}
-	f, err := strconv.ParseFloat(v, 64)
-	if err != nil {
-		return nil
-	}
-	return &f
-}
-
-// --- Fee capture (no invoice/ledger, just amount + paid/unpaid) ---
-
-func (h *Handlers) SetFee(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
-	if err != nil {
-		http.NotFound(w, r)
-		return
-	}
-	if err := r.ParseForm(); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-	amount := parseOptionalFloat(r.PostForm.Get("fee_amount"))
-	paid := r.PostForm.Get("fee_paid") == "on"
-
-	if err := h.Store.SetFee(r.Context(), id, amount, paid); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	appt, err := h.Store.Get(r.Context(), id)
-	if err != nil {
-		http.NotFound(w, r)
-		return
-	}
-	http.Redirect(w, r, "/appointments?practitioner_id="+strconv.FormatInt(appt.PractitionerID, 10)+
-		"&date="+appt.ScheduledAt.Format(dateLayout), http.StatusSeeOther)
-}

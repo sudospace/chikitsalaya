@@ -25,24 +25,6 @@ document.addEventListener("click", function (e) {
 	if (results) results.innerHTML = "";
 });
 
-// Fee-type picker: fills the amount from data-* attrs on the select (no
-// extra request needed). "Custom" leaves the typed value alone.
-document.addEventListener("change", function (e) {
-	var select = e.target.closest("[data-fee-type]");
-	if (!select) return;
-
-	var form = select.closest("form");
-	if (!form) return;
-	var amountField = form.querySelector("[data-fee-amount]");
-	if (!amountField) return;
-
-	if (select.value === "first") {
-		amountField.value = select.getAttribute("data-first-fee") || "";
-	} else if (select.value === "followup") {
-		amountField.value = select.getAttribute("data-followup-fee") || "";
-	}
-});
-
 // Finds the hidden catalog-id input for a visible field: checks the
 // field's own <tr> first (multi-row tables), then falls back to its
 // <form> (a single add-row field keeps its hidden input there instead).

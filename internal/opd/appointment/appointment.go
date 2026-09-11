@@ -266,11 +266,3 @@ func (s *Store) CancelOwned(ctx context.Context, id, patientID int64) error {
 	}
 	return nil
 }
-
-// SetFee is capture only — amount + paid flag, no invoice/ledger.
-func (s *Store) SetFee(ctx context.Context, id int64, amount *float64, paid bool) error {
-	_, err := s.Pool.Exec(ctx,
-		`UPDATE appointments SET fee_amount = $2, fee_paid = $3, updated_at = now() WHERE id = $1`,
-		id, amount, paid)
-	return err
-}

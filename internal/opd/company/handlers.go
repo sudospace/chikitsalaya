@@ -88,7 +88,18 @@ func parseCompanyForm(r *http.Request) (CompanyInput, error) {
 		FollowUpFee:          parseOptionalFloat(r.PostForm.Get("follow_up_fee")),
 		GSTIN:                r.PostForm.Get("gstin"),
 		GSTRegistered:        r.PostForm.Get("gst_registered") == "on",
+		FYStartMonth:         parseFYStartMonth(r.PostForm.Get("fy_start_month")),
 	}, nil
+}
+
+// parseFYStartMonth falls back to April (the DB column's own default) for
+// anything unset, tampered, or out of the 1-12 range.
+func parseFYStartMonth(v string) int {
+	m, err := strconv.Atoi(v)
+	if err != nil || m < 1 || m > 12 {
+		return 4
+	}
+	return m
 }
 
 func parseOptionalFloat(v string) *float64 {

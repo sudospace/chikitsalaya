@@ -7,7 +7,7 @@
         {{else if eq .Invoice.Status "partially_paid"}}<span class="badge badge-warning">Partially paid</span>
         {{else if eq .Invoice.Status "cancelled"}}<span class="badge badge-muted">Cancelled</span>
         {{else}}<span class="badge badge-danger">Unpaid</span>{{end}}
-        <a href="/billing/invoices/{{.Invoice.ID}}/print" class="button outline">Print</a>
+        <a href="/billing/invoices/{{.Invoice.ID}}/print" class="button outline" target="_blank" rel="noopener">Print</a>
         {{if and (ne .Invoice.Status "paid") (ne .Invoice.Status "cancelled")}}
         <form method="post" action="/billing/invoices/{{.Invoice.ID}}/cancel" class="inline-form">
             <button type="submit" class="outline" data-variant="danger">Cancel invoice</button>
