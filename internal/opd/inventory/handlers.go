@@ -119,6 +119,14 @@ func parseForm(r *http.Request) (DrugInput, error) {
 		}
 		opening = f
 	}
+	var price *float64
+	if v := r.PostForm.Get("price"); v != "" {
+		f, err := strconv.ParseFloat(v, 64)
+		if err != nil {
+			return DrugInput{}, err
+		}
+		price = &f
+	}
 	return DrugInput{
 		Name:         r.PostForm.Get("name"),
 		GenericName:  r.PostForm.Get("generic_name"),
@@ -126,6 +134,7 @@ func parseForm(r *http.Request) (DrugInput, error) {
 		Strength:     r.PostForm.Get("strength"),
 		Unit:         r.PostForm.Get("unit"),
 		ReorderLevel: reorder,
+		Price:        price,
 		IsActive:     r.PostForm.Get("is_active") == "on",
 		OpeningStock: opening,
 	}, nil

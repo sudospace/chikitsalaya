@@ -90,6 +90,16 @@
     </div>
     <p><small>Reception picks one of these (or a custom amount) when booking or setting an appointment's fee.</small></p>
 
+    <label data-field>
+        <input type="checkbox" name="gst_registered" {{if .Company.GSTRegistered}}checked{{end}}>
+        GST registered
+    </label>
+    <label data-field>
+        GSTIN
+        <input type="text" name="gstin" value="{{.Company.GSTIN}}" placeholder="e.g. 22AAAAA0000A1Z5">
+    </label>
+    <p><small>When GST registered, invoices compute CGST/SGST and show your GSTIN on the printed document. Leave unchecked if your clinic isn't GST-registered — invoices will show no tax section.</small></p>
+
     <menu class="buttons">
         <li><button type="submit">Save</button></li>
         <li><a href="{{.CancelURL}}" class="button outline">Cancel</a></li>

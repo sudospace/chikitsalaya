@@ -35,6 +35,7 @@
                 <a href="/practitioners">Practitioners</a>
                 <a href="/appointments">Appointments</a>
                 <a href="/quick-prescription">Quick Rx</a>
+                {{if .Chrome.CanBilling}}<a href="/billing">Billing</a>{{end}}
 
                 {{if .Chrome.IsAdmin}}
                 <div class="nav-dropdown">

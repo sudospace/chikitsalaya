@@ -19,6 +19,7 @@ import (
 	"chikitsalaya/internal/db"
 	"chikitsalaya/internal/opd/account"
 	"chikitsalaya/internal/opd/appointment"
+	"chikitsalaya/internal/opd/billing"
 	"chikitsalaya/internal/opd/booking"
 	"chikitsalaya/internal/opd/company"
 	"chikitsalaya/internal/opd/dashboard"
@@ -102,11 +103,14 @@ func main() {
 	renderer.SetChromeResolver(func(r *http.Request) web.Chrome {
 		role := auth.CurrentRole(sm, r)
 		actingAsDoctor := auth.IsActingAsDoctor(sm, r)
+		userID := auth.CurrentUserID(sm, r)
+		canBilling, _ := permStore.HasAccess(r.Context(), role, userID, auth.ModuleBilling, auth.AccessView)
 		chrome := web.Chrome{
 			Role:             role,
 			IsAdmin:          role == auth.RoleAdmin,
 			IsActingAsDoctor: actingAsDoctor,
 			RoleLabel:        roleLabels[role],
+			CanBilling:       canBilling,
 		}
 		if chrome.RoleLabel == "" {
 			chrome.RoleLabel = role
@@ -117,7 +121,7 @@ func main() {
 		if c, err := companyStore.GetClinic(r.Context()); err == nil {
 			chrome.ClinicName = c.Name
 		}
-		if userID := auth.CurrentUserID(sm, r); userID != 0 {
+		if userID != 0 {
 			if u, err := userStore.GetByID(r.Context(), userID); err == nil {
 				chrome.UserEmail = u.Email
 				if len(u.Email) > 0 {
@@ -148,7 +152,7 @@ func main() {
 	onboardingHandlers := onboarding.NewHandlers(userStore, practitionerStore, scheduleStore, inventoryStore, mastersStore, sm, renderer)
 
 	encounterStore := encounter.NewStore(pool)
-	encounterHandlers := encounter.NewHandlers(encounterStore, appointmentStore, practitionerStore, inventoryStore, mastersStore, companyStore, patientStore, userStore, sm, renderer)
+	encounterHandlers := encounter.NewHandlers(encounterStore, appointmentStore, practitionerStore, inventoryStore, mastersStore, companyStore, patientStore, userStore, permStore, sm, renderer)
 
 	integrationsStore := integrations.NewStore(pool)
 	integrationsHandlers := integrations.NewHandlers(integrationsStore, sm, renderer)
@@ -160,6 +164,10 @@ func main() {
 	dashboardHandlers := dashboard.NewHandlers(appointmentStore, companyStore, patientStore, practitionerStore, permStore, userStore, sm, renderer)
 
 	accountHandlers := account.NewHandlers(userStore, permStore, practitionerStore, scheduleStore, companyStore, sm, renderer)
+
+	billingStore := billing.NewStore(pool)
+	billingHandlers := billing.NewHandlers(billingStore, encounterStore, appointmentStore, patientStore,
+		practitionerStore, companyStore, mastersStore, inventoryStore, userStore, sm, renderer)
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
@@ -390,6 +398,19 @@ func main() {
 			er.With(edit(auth.ModuleEncounters)).Post("/complete", encounterHandlers.CompleteHandler)
 			er.With(edit(auth.ModuleEncounters)).Post("/reopen", encounterHandlers.ReopenHandler)
 			er.Get("/print", encounterHandlers.PrintHandler)
+		})
+
+		pr.Route("/billing", func(br chi.Router) {
+			br.Use(view(auth.ModuleBilling))
+			br.Get("/", billingHandlers.Index)
+			br.With(edit(auth.ModuleBilling)).Get("/new", billingHandlers.NewInvoiceForm)
+			br.With(edit(auth.ModuleBilling)).Post("/new", billingHandlers.CreateInvoice)
+			br.With(edit(auth.ModuleBilling)).Get("/quick", billingHandlers.NewQuickInvoiceForm)
+			br.With(edit(auth.ModuleBilling)).Post("/quick", billingHandlers.CreateQuickInvoice)
+			br.Get("/invoices/{id}", billingHandlers.ViewInvoice)
+			br.Get("/invoices/{id}/print", billingHandlers.PrintInvoice)
+			br.With(edit(auth.ModuleBilling)).Post("/invoices/{id}/payments", billingHandlers.RecordPayment)
+			br.With(edit(auth.ModuleBilling)).Post("/invoices/{id}/cancel", billingHandlers.CancelInvoice)
 		})
 	})
 

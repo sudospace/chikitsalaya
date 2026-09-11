@@ -30,17 +30,18 @@ type Handlers struct {
 	CompanyStore      *company.Store
 	PatientStore      *patient.Store
 	UserStore         *auth.Store
+	PermissionStore   *auth.PermissionStore
 	Sessions          *scs.SessionManager
 	Renderer          *web.Renderer
 }
 
 func NewHandlers(store *Store, appointmentStore *appointment.Store, practitionerStore *practitioner.Store,
 	inventoryStore *inventory.Store, mastersStore *masters.Store, companyStore *company.Store, patientStore *patient.Store,
-	userStore *auth.Store, sm *scs.SessionManager, renderer *web.Renderer) *Handlers {
+	userStore *auth.Store, permissionStore *auth.PermissionStore, sm *scs.SessionManager, renderer *web.Renderer) *Handlers {
 	return &Handlers{
 		Store: store, AppointmentStore: appointmentStore, PractitionerStore: practitionerStore,
 		InventoryStore: inventoryStore, MastersStore: mastersStore, CompanyStore: companyStore, PatientStore: patientStore,
-		UserStore: userStore, Sessions: sm, Renderer: renderer,
+		UserStore: userStore, PermissionStore: permissionStore, Sessions: sm, Renderer: renderer,
 	}
 }
 
@@ -75,6 +76,7 @@ type workspaceData struct {
 	Practitioners       []practitioner.Practitioner
 	DosageOptionsJSON   template.JS
 	DurationOptionsJSON template.JS
+	CanBilling          bool
 	Error               string
 }
 
@@ -127,10 +129,16 @@ func (h *Handlers) loadWorkspace(r *http.Request) (*workspaceData, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	role := auth.CurrentRole(h.Sessions, r)
+	userID := auth.CurrentUserID(h.Sessions, r)
+	canBilling, _ := h.PermissionStore.HasAccess(ctx, role, userID, auth.ModuleBilling, auth.AccessEdit)
+
 	return &workspaceData{
 		Encounter: enc, Vitals: vitals, Diagnoses: diagnoses, PrescriptionItems: items,
 		LabOrders: labOrders, ProcedureOrders: procOrders, Practitioners: practitioners,
 		DosageOptionsJSON: lookupValuesJSON(dosages), DurationOptionsJSON: lookupValuesJSON(sortDurationOptions(durations)),
+		CanBilling: canBilling,
 	}, nil
 }
 

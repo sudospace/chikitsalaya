@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{.Invoice.InvoiceNumber}} — {{.Invoice.PatientName}}</title>
+    <style>
+        :root { color-scheme: light; }
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+            color: #1a1a1a;
+            margin: 0;
+            background: #e9e9e9;
+        }
+        .sheet {
+            max-width: 780px;
+            margin: 1.5rem auto;
+            padding: 1.75rem 2rem 2.25rem;
+            background: #fff;
+            box-shadow: 0 1px 3px rgb(0 0 0 / .15);
+        }
+        .toolbar {
+            max-width: 780px;
+            margin: 0 auto;
+            padding: 0.75rem 2rem 0;
+        }
+        .toolbar button {
+            font: inherit;
+            padding: 0.5rem 1.1rem;
+            border-radius: 0.4rem;
+            border: 1px solid #333;
+            background: #fff;
+            cursor: pointer;
+        }
+
+        .letterhead { border-bottom: 2px solid #333; padding-bottom: 0.75rem; margin-bottom: 1rem; }
+        .letterhead-image { display: block; max-width: 100%; height: auto; }
+        .plain-header { display: flex; align-items: center; gap: 0.85rem; border-bottom: 2px solid #333; padding-bottom: 0.75rem; margin-bottom: 1rem; }
+        .plain-header img { height: 3rem; width: auto; }
+        .plain-header h1 { margin: 0 0 0.25rem; font-size: 1.4rem; }
+        .plain-header p { margin: 0; color: #555; font-size: 0.88rem; }
+
+        h1.invoice-title { font-size: 1.3rem; margin: 0 0 0.15rem; }
+
+        .meta-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+            padding-bottom: 0.85rem;
+            border-bottom: 1px solid #ccc;
+            font-size: 0.92rem;
+        }
+        .meta-col { min-width: 220px; }
+        .meta-row .name { font-size: 1.05rem; font-weight: 700; margin: 0 0 0.15rem; }
+        .meta-row .sub { color: #444; margin: 0 0 0.15rem; }
+        .meta-col.right { text-align: right; }
+
+        table { width: 100%; border-collapse: collapse; margin-bottom: 0.5rem; }
+        th, td { text-align: left; padding: 0.4rem 0.5rem; border-bottom: 1px solid #eee; font-size: 0.88rem; vertical-align: top; }
+        th { color: #555; font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.02em; }
+        td.num, th.num { text-align: right; }
+
+        .totals { width: 100%; margin-top: 0.5rem; }
+        .totals td { border-bottom: none; padding: 0.15rem 0.5rem; }
+        .totals .label { text-align: right; color: #555; }
+        .totals .value { text-align: right; width: 8rem; }
+        .totals .grand td { border-top: 1px solid #333; font-weight: 700; padding-top: 0.4rem; }
+
+        .sign-row {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 2.5rem;
+        }
+        .sign-box { text-align: center; }
+        .sign-line { width: 12rem; border-top: 1px solid #333; margin-bottom: 0.3rem; }
+        .sign-box p { margin: 0; font-size: 0.82rem; color: #555; }
+
+        .footer-text { margin-top: 1.5rem; padding-top: 0.75rem; border-top: 1px solid #eee; font-size: 0.78rem; color: #777; }
+
+        @media print {
+            body { background: #fff; }
+            .toolbar { display: none; }
+            .sheet { max-width: none; margin: 0; padding: 0; box-shadow: none; }
+            @page { margin: 0.6in; }
+        }
+    </style>
+</head>
+<body>
+    <div class="toolbar">
+        <button onclick="window.print()">Print</button>
+    </div>
+
+    <div class="sheet">
+        {{if eq .Company.LetterheadMode "image"}}
+        {{if .Company.LetterheadImagePath}}
+        <div class="letterhead"><img src="/branding/letterhead" alt="" class="letterhead-image"></div>
+        {{else}}
+        <div class="plain-header">
+            {{if .Company.LogoPath}}<img src="/branding/logo" alt="">{{end}}
+            <div>
+                <h1>{{.Company.Name}}</h1>
+                {{if .Company.Address}}<p>{{.Company.Address}}</p>{{end}}
+                {{if .Company.Phone}}<p>{{.Company.Phone}}{{if .Company.Email}} &middot; {{.Company.Email}}{{end}}</p>{{end}}
+                {{if .Company.GSTRegistered}}<p>GSTIN: {{.Company.GSTIN}}</p>{{end}}
+            </div>
+        </div>
+        {{end}}
+        {{else}}
+        <div class="plain-header">
+            {{if .Company.LogoPath}}<img src="/branding/logo" alt="">{{end}}
+            <div>
+                <h1>{{.Company.Name}}</h1>
+                {{if .Company.Address}}<p>{{.Company.Address}}</p>{{end}}
+                {{if .Company.Phone}}<p>{{.Company.Phone}}{{if .Company.Email}} &middot; {{.Company.Email}}{{end}}</p>{{end}}
+                {{if .Company.GSTRegistered}}<p>GSTIN: {{.Company.GSTIN}}</p>{{end}}
+            </div>
+        </div>
+        {{end}}
+
+        <h1 class="invoice-title">Invoice {{.Invoice.InvoiceNumber}}</h1>
+
+        <div class="meta-row">
+            <div class="meta-col">
+                <p class="name">{{.Invoice.PatientName}}</p>
+            </div>
+            <div class="meta-col right">
+                <p class="sub"><strong>{{.Invoice.PractitionerName}}</strong></p>
+                <p class="sub">{{.Invoice.IssuedAt.Format "2 Jan 2006"}}</p>
+            </div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Description</th>
+                    {{if .Company.GSTRegistered}}<th>HSN/SAC</th>{{end}}
+                    <th class="num">Qty</th>
+                    <th class="num">Unit price</th>
+                    {{if .Company.GSTRegistered}}<th class="num">Tax %</th><th class="num">Tax amt</th>{{end}}
+                    <th class="num">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{range .LineItems}}
+                <tr>
+                    <td>{{.Description}}</td>
+                    {{if $.Company.GSTRegistered}}<td>{{.HSNSACCode}}</td>{{end}}
+                    <td class="num">{{.Quantity}}</td>
+                    <td class="num">{{printf "%.2f" .UnitPrice}}</td>
+                    {{if $.Company.GSTRegistered}}<td class="num">{{printf "%.0f" .TaxRate}}</td><td class="num">{{printf "%.2f" .TaxAmount}}</td>{{end}}
+                    <td class="num">{{printf "%.2f" .Amount}}</td>
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
+
+        <table class="totals">
+            <tr><td class="label">Subtotal</td><td class="value">{{printf "%.2f" .Invoice.Subtotal}}</td></tr>
+            {{if .Invoice.DiscountAmount}}<tr><td class="label">Discount</td><td class="value">-{{printf "%.2f" .Invoice.DiscountAmount}}</td></tr>{{end}}
+            {{if .Company.GSTRegistered}}
+            <tr><td class="label">CGST</td><td class="value">{{printf "%.2f" .Invoice.CGSTAmount}}</td></tr>
+            <tr><td class="label">SGST</td><td class="value">{{printf "%.2f" .Invoice.SGSTAmount}}</td></tr>
+            {{end}}
+            <tr class="grand"><td class="label">Total</td><td class="value">{{printf "%.2f" .Invoice.Total}}</td></tr>
+            <tr><td class="label">Paid</td><td class="value">{{printf "%.2f" .Invoice.AmountPaid}}</td></tr>
+            <tr><td class="label">Balance due</td><td class="value">{{printf "%.2f" .Invoice.Balance}}</td></tr>
+        </table>
+
+        <div class="sign-row">
+            <div class="sign-box">
+                <div class="sign-line"></div>
+                <p>{{.Invoice.PractitionerName}}</p>
+            </div>
+        </div>
+
+        {{if .Company.FooterText}}
+        <p class="footer-text">{{.Company.FooterText}}</p>
+        {{end}}
+    </div>
+</body>
+</html>

@@ -1,0 +1,93 @@
+{{define "title"}}New Invoice — Chikitsalaya{{end}}
+{{define "content"}}
+<div class="page-header">
+    <h1>New Invoice</h1>
+    <a href="/encounters/{{.Encounter.ID}}" class="button outline">Cancel</a>
+</div>
+<p><small>{{.Encounter.PatientName}} &middot; {{.Encounter.PractitionerName}}</small></p>
+
+{{if .Error}}
+<div role="alert" data-variant="error">{{.Error}}</div>
+{{end}}
+
+<form method="post" action="/billing/new?encounter_id={{.Encounter.ID}}" id="invoice-form">
+    <article class="card">
+        <header><h3>Line items</h3></header>
+        <table>
+            <thead>
+                <tr>
+                    <th>Kind</th><th>Description</th><th>HSN/SAC</th><th>Qty</th><th>Unit price</th><th>Tax %</th>
+                </tr>
+            </thead>
+            <tbody id="invoice-lines">
+                {{range .Rows}}
+                <tr>
+                    <td>
+                        <select form="invoice-form" name="kind" aria-label="Kind">
+                            <option value="consultation" {{if eq .Kind "consultation"}}selected{{end}}>Consultation</option>
+                            <option value="drug" {{if eq .Kind "drug"}}selected{{end}}>Drug</option>
+                            <option value="lab" {{if eq .Kind "lab"}}selected{{end}}>Lab</option>
+                            <option value="procedure" {{if eq .Kind "procedure"}}selected{{end}}>Procedure</option>
+                            <option value="other" {{if eq .Kind "other"}}selected{{end}}>Other</option>
+                        </select>
+                    </td>
+                    <td><input form="invoice-form" type="text" name="description" value="{{.Description}}"></td>
+                    <td><input form="invoice-form" type="text" name="hsn_sac_code" value="{{.HSNSACCode}}" style="width: 6rem;"></td>
+                    <td><input form="invoice-form" type="number" step="0.01" min="0" name="quantity" value="{{.Quantity}}" style="width: 4.5rem;"></td>
+                    <td><input form="invoice-form" type="number" step="0.01" min="0" name="unit_price" value="{{.UnitPrice}}" style="width: 6rem;"></td>
+                    <td><input form="invoice-form" type="number" step="0.01" min="0" name="tax_rate" value="{{.TaxRate}}" style="width: 4.5rem;"></td>
+                    <td>
+                        {{if .LabOrderID}}<input form="invoice-form" type="hidden" name="lab_order_id" value="{{.LabOrderID}}">{{else}}<input form="invoice-form" type="hidden" name="lab_order_id" value="">{{end}}
+                        {{if .ProcedureOrderID}}<input form="invoice-form" type="hidden" name="procedure_order_id" value="{{.ProcedureOrderID}}">{{else}}<input form="invoice-form" type="hidden" name="procedure_order_id" value="">{{end}}
+                        {{if .PrescriptionItemID}}<input form="invoice-form" type="hidden" name="prescription_item_id" value="{{.PrescriptionItemID}}">{{else}}<input form="invoice-form" type="hidden" name="prescription_item_id" value="">{{end}}
+                    </td>
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
+        <menu class="buttons">
+            <li><button type="button" class="small outline" data-add-row data-template="invoice-line-template" data-target="invoice-lines">+ Add line</button></li>
+        </menu>
+    </article>
+
+    <article class="card">
+        <label data-field>
+            Discount amount (optional)
+            <input type="number" step="0.01" min="0" name="discount_amount" form="invoice-form" value="0">
+        </label>
+        <label data-field>
+            Notes (optional)
+            <textarea name="notes" form="invoice-form"></textarea>
+        </label>
+    </article>
+
+    <menu class="buttons">
+        <li><button type="submit">Create invoice</button></li>
+        <li><a href="/encounters/{{.Encounter.ID}}" class="button outline">Cancel</a></li>
+    </menu>
+</form>
+
+<template id="invoice-line-template">
+    <tr>
+        <td>
+            <select form="invoice-form" name="kind" aria-label="Kind">
+                <option value="consultation">Consultation</option>
+                <option value="drug">Drug</option>
+                <option value="lab">Lab</option>
+                <option value="procedure">Procedure</option>
+                <option value="other" selected>Other</option>
+            </select>
+        </td>
+        <td><input form="invoice-form" type="text" name="description"></td>
+        <td><input form="invoice-form" type="text" name="hsn_sac_code" style="width: 6rem;"></td>
+        <td><input form="invoice-form" type="number" step="0.01" min="0" name="quantity" value="1" style="width: 4.5rem;"></td>
+        <td><input form="invoice-form" type="number" step="0.01" min="0" name="unit_price" value="0" style="width: 6rem;"></td>
+        <td><input form="invoice-form" type="number" step="0.01" min="0" name="tax_rate" value="0" style="width: 4.5rem;"></td>
+        <td>
+            <input form="invoice-form" type="hidden" name="lab_order_id" value="">
+            <input form="invoice-form" type="hidden" name="procedure_order_id" value="">
+            <input form="invoice-form" type="hidden" name="prescription_item_id" value="">
+        </td>
+    </tr>
+</template>
+{{end}}

@@ -50,6 +50,10 @@
             Reorder level (optional)
             <input type="number" step="0.01" name="reorder_level" value="{{if .Drug.ReorderLevel}}{{.Drug.ReorderLevel}}{{end}}">
         </label>
+        <label data-field>
+            Price (optional)
+            <input type="number" step="0.01" min="0" name="price" value="{{if .Drug.Price}}{{.Drug.Price}}{{end}}">
+        </label>
     </div>
 
     <label data-field>

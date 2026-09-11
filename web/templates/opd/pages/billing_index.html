@@ -1,0 +1,72 @@
+{{define "title"}}Billing — Chikitsalaya{{end}}
+{{define "content"}}
+<div class="page-header">
+    <h1>Billing</h1>
+    <a href="/billing/quick" class="button">+ Quick Invoice</a>
+</div>
+
+<form method="get" action="/billing">
+    <div class="hstack">
+        <div data-field>
+            <label>Status</label>
+            <select name="status" aria-label="Status">
+                <option value="">All</option>
+                <option value="unpaid" {{if eq .Status "unpaid"}}selected{{end}}>Unpaid</option>
+                <option value="partially_paid" {{if eq .Status "partially_paid"}}selected{{end}}>Partially paid</option>
+                <option value="paid" {{if eq .Status "paid"}}selected{{end}}>Paid</option>
+                <option value="cancelled" {{if eq .Status "cancelled"}}selected{{end}}>Cancelled</option>
+            </select>
+        </div>
+        <label data-field>
+            From
+            <input type="date" name="from" value="{{.From}}">
+        </label>
+        <label data-field>
+            To
+            <input type="date" name="to" value="{{.To}}">
+        </label>
+        <div data-field>
+            <label>&nbsp;</label>
+            <button type="submit">Filter</button>
+        </div>
+    </div>
+</form>
+
+<article class="card">
+    <table>
+        <thead>
+            <tr>
+                <th>Invoice</th>
+                <th>Date</th>
+                <th>Patient</th>
+                <th>Practitioner</th>
+                <th>Status</th>
+                <th>Total</th>
+                <th>Balance</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {{range .Invoices}}
+            <tr>
+                <td>{{.InvoiceNumber}}</td>
+                <td>{{.IssuedAt.Format "2 Jan 2006"}}</td>
+                <td>{{.PatientName}}</td>
+                <td>{{.PractitionerName}}</td>
+                <td>
+                    {{if eq .Status "paid"}}<span class="badge badge-success">Paid</span>
+                    {{else if eq .Status "partially_paid"}}<span class="badge badge-warning">Partially paid</span>
+                    {{else if eq .Status "cancelled"}}<span class="badge badge-muted">Cancelled</span>
+                    {{else}}<span class="badge badge-danger">Unpaid</span>{{end}}
+                </td>
+                <td>{{printf "%.2f" .Total}}</td>
+                <td>{{printf "%.2f" .Balance}}</td>
+                <td><a href="/billing/invoices/{{.ID}}" class="button small outline">View</a></td>
+            </tr>
+            {{else}}
+            <tr><td colspan="8">No invoices yet.</td></tr>
+            {{end}}
+        </tbody>
+    </table>
+</article>
+{{end}}

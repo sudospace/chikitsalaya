@@ -25,6 +25,8 @@ type Company struct {
 	FooterText           string
 	FirstConsultationFee *float64
 	FollowUpFee          *float64
+	GSTIN                string
+	GSTRegistered        bool
 	CreatedAt            time.Time
 	UpdatedAt            time.Time
 }
@@ -42,6 +44,8 @@ type CompanyInput struct {
 	FooterText           string
 	FirstConsultationFee *float64
 	FollowUpFee          *float64
+	GSTIN                string
+	GSTRegistered        bool
 }
 
 type ServiceUnit struct {
@@ -68,7 +72,7 @@ func NewStore(pool *pgxpool.Pool) *Store {
 
 const companyColumns = `id, name, address, phone, email, registration_no,
 	logo_path, letterhead_mode, letterhead_html, letterhead_image_path, footer_text,
-	first_consultation_fee, follow_up_fee, created_at, updated_at`
+	first_consultation_fee, follow_up_fee, gstin, gst_registered, created_at, updated_at`
 
 // defaultLookupValues seeds the clinic with a starting dosage/duration
 // picklist, editable afterward via /admin/lookup-values.
@@ -128,7 +132,7 @@ func scanCompany(row pgx.Row) (*Company, error) {
 	var c Company
 	err := row.Scan(&c.ID, &c.Name, &c.Address, &c.Phone, &c.Email, &c.RegistrationNo,
 		&c.LogoPath, &c.LetterheadMode, &c.LetterheadHTML, &c.LetterheadImagePath, &c.FooterText,
-		&c.FirstConsultationFee, &c.FollowUpFee, &c.CreatedAt, &c.UpdatedAt)
+		&c.FirstConsultationFee, &c.FollowUpFee, &c.GSTIN, &c.GSTRegistered, &c.CreatedAt, &c.UpdatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -195,9 +199,10 @@ func (s *Store) UpdateClinic(ctx context.Context, in CompanyInput) error {
 		UPDATE clinic_settings SET
 			name = $1, address = $2, phone = $3, email = $4, registration_no = $5,
 			letterhead_mode = $6, letterhead_html = $7, footer_text = $8,
-			first_consultation_fee = $9, follow_up_fee = $10, updated_at = now()`,
+			first_consultation_fee = $9, follow_up_fee = $10, gstin = $11, gst_registered = $12, updated_at = now()`,
 		in.Name, in.Address, in.Phone, in.Email, in.RegistrationNo,
-		in.LetterheadMode, in.LetterheadHTML, in.FooterText, in.FirstConsultationFee, in.FollowUpFee)
+		in.LetterheadMode, in.LetterheadHTML, in.FooterText, in.FirstConsultationFee, in.FollowUpFee,
+		in.GSTIN, in.GSTRegistered)
 	return err
 }
 

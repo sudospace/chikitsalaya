@@ -20,6 +20,7 @@ type Drug struct {
 	Unit         string
 	StockQty     float64
 	ReorderLevel *float64
+	Price        *float64
 	IsActive     bool
 	CreatedAt    time.Time
 }
@@ -33,6 +34,7 @@ type DrugInput struct {
 	Strength     string
 	Unit         string
 	ReorderLevel *float64
+	Price        *float64
 	IsActive     bool
 	OpeningStock float64
 }
@@ -45,7 +47,7 @@ func NewStore(pool *pgxpool.Pool) *Store {
 	return &Store{Pool: pool}
 }
 
-const drugColumns = `id, name, generic_name, form, strength, unit, stock_qty, reorder_level, is_active, created_at`
+const drugColumns = `id, name, generic_name, form, strength, unit, stock_qty, reorder_level, price, is_active, created_at`
 
 func (s *Store) ListDrugs(ctx context.Context) ([]Drug, error) {
 	rows, err := s.Pool.Query(ctx, `SELECT `+drugColumns+` FROM drugs ORDER BY name`)
@@ -105,7 +107,7 @@ func (s *Store) SearchDrugs(ctx context.Context, q string) ([]Drug, error) {
 func scanDrug(row pgx.Row) (*Drug, error) {
 	var d Drug
 	err := row.Scan(&d.ID, &d.Name, &d.GenericName, &d.Form, &d.Strength, &d.Unit,
-		&d.StockQty, &d.ReorderLevel, &d.IsActive, &d.CreatedAt)
+		&d.StockQty, &d.ReorderLevel, &d.Price, &d.IsActive, &d.CreatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -123,9 +125,9 @@ func (s *Store) CreateDrug(ctx context.Context, in DrugInput, createdBy int64) (
 
 	var id int64
 	err = tx.QueryRow(ctx, `
-		INSERT INTO drugs (name, generic_name, form, strength, unit, stock_qty, reorder_level, is_active)
-		VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id`,
-		in.Name, in.GenericName, in.Form, in.Strength, in.Unit, in.OpeningStock, in.ReorderLevel, in.IsActive).Scan(&id)
+		INSERT INTO drugs (name, generic_name, form, strength, unit, stock_qty, reorder_level, price, is_active)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id`,
+		in.Name, in.GenericName, in.Form, in.Strength, in.Unit, in.OpeningStock, in.ReorderLevel, in.Price, in.IsActive).Scan(&id)
 	if err != nil {
 		return 0, err
 	}
@@ -145,8 +147,8 @@ func (s *Store) CreateDrug(ctx context.Context, in DrugInput, createdBy int64) (
 func (s *Store) UpdateDrug(ctx context.Context, id int64, in DrugInput) error {
 	_, err := s.Pool.Exec(ctx, `
 		UPDATE drugs SET name = $2, generic_name = $3, form = $4, strength = $5, unit = $6,
-			reorder_level = $7, is_active = $8
+			reorder_level = $7, price = $8, is_active = $9
 		WHERE id = $1`,
-		id, in.Name, in.GenericName, in.Form, in.Strength, in.Unit, in.ReorderLevel, in.IsActive)
+		id, in.Name, in.GenericName, in.Form, in.Strength, in.Unit, in.ReorderLevel, in.Price, in.IsActive)
 	return err
 }

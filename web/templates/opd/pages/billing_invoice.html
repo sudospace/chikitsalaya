@@ -1,0 +1,105 @@
+{{define "title"}}{{.Invoice.InvoiceNumber}} — Chikitsalaya{{end}}
+{{define "content"}}
+<div class="page-header">
+    <h1>{{.Invoice.InvoiceNumber}}</h1>
+    <div>
+        {{if eq .Invoice.Status "paid"}}<span class="badge badge-success">Paid</span>
+        {{else if eq .Invoice.Status "partially_paid"}}<span class="badge badge-warning">Partially paid</span>
+        {{else if eq .Invoice.Status "cancelled"}}<span class="badge badge-muted">Cancelled</span>
+        {{else}}<span class="badge badge-danger">Unpaid</span>{{end}}
+        <a href="/billing/invoices/{{.Invoice.ID}}/print" class="button outline">Print</a>
+        {{if and (ne .Invoice.Status "paid") (ne .Invoice.Status "cancelled")}}
+        <form method="post" action="/billing/invoices/{{.Invoice.ID}}/cancel" class="inline-form">
+            <button type="submit" class="outline" data-variant="danger">Cancel invoice</button>
+        </form>
+        {{end}}
+    </div>
+</div>
+<p><small>{{.Invoice.PatientName}} &middot; {{.Invoice.PractitionerName}} &middot; {{.Invoice.IssuedAt.Format "2 Jan 2006"}}</small></p>
+
+{{if .Error}}
+<div role="alert" data-variant="error">{{.Error}}</div>
+{{end}}
+
+<article class="card">
+    <header><h3>Line items</h3></header>
+    <table>
+        <thead><tr><th>Description</th><th>HSN/SAC</th><th>Qty</th><th>Unit price</th><th>Tax</th><th>Amount</th></tr></thead>
+        <tbody>
+            {{range .LineItems}}
+            <tr>
+                <td>{{.Description}}</td>
+                <td>{{.HSNSACCode}}</td>
+                <td>{{.Quantity}}</td>
+                <td>{{printf "%.2f" .UnitPrice}}</td>
+                <td>{{if .TaxAmount}}{{printf "%.2f" .TaxAmount}} ({{printf "%.0f" .TaxRate}}%){{else}}—{{end}}</td>
+                <td>{{printf "%.2f" .Amount}}</td>
+            </tr>
+            {{end}}
+        </tbody>
+    </table>
+    <dl>
+        <dt>Subtotal</dt><dd>{{printf "%.2f" .Invoice.Subtotal}}</dd>
+        <dt>Discount</dt><dd>{{printf "%.2f" .Invoice.DiscountAmount}}</dd>
+        <dt>CGST</dt><dd>{{printf "%.2f" .Invoice.CGSTAmount}}</dd>
+        <dt>SGST</dt><dd>{{printf "%.2f" .Invoice.SGSTAmount}}</dd>
+        <dt><strong>Total</strong></dt><dd><strong>{{printf "%.2f" .Invoice.Total}}</strong></dd>
+        <dt>Paid</dt><dd>{{printf "%.2f" .Invoice.AmountPaid}}</dd>
+        <dt>Balance</dt><dd>{{printf "%.2f" .Invoice.Balance}}</dd>
+    </dl>
+</article>
+
+<article class="card">
+    <header><h3>Payments</h3></header>
+    <table>
+        <thead><tr><th>Date</th><th>Amount</th><th>Method</th><th>Reference</th><th>Recorded by</th></tr></thead>
+        <tbody>
+            {{range .Payments}}
+            <tr>
+                <td>{{.PaidAt.Format "2 Jan 2006"}}</td>
+                <td>{{printf "%.2f" .Amount}}</td>
+                <td>{{.Method}}</td>
+                <td>{{.ReferenceNo}}</td>
+                <td>{{.RecordedByName}}</td>
+            </tr>
+            {{else}}
+            <tr><td colspan="5">No payments recorded yet.</td></tr>
+            {{end}}
+        </tbody>
+    </table>
+
+    {{if and (ne .Invoice.Status "paid") (ne .Invoice.Status "cancelled")}}
+    <form method="post" action="/billing/invoices/{{.Invoice.ID}}/payments">
+        <div class="hstack">
+            <label data-field>
+                Amount
+                <input type="number" step="0.01" min="0.01" name="amount" required>
+            </label>
+            <div data-field>
+                <label>Method</label>
+                <select name="method" aria-label="Method">
+                    <option value="cash">Cash</option>
+                    <option value="card">Card</option>
+                    <option value="upi">UPI</option>
+                    <option value="bank_transfer">Bank transfer</option>
+                    <option value="cheque">Cheque</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            <label data-field>
+                Reference no. (optional)
+                <input type="text" name="reference_no">
+            </label>
+            <label data-field>
+                Date (optional)
+                <input type="date" name="paid_at">
+            </label>
+            <div data-field>
+                <label>&nbsp;</label>
+                <button type="submit">Record payment</button>
+            </div>
+        </div>
+    </form>
+    {{end}}
+</article>
+{{end}}

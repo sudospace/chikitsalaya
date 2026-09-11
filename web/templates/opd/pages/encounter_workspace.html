@@ -7,6 +7,7 @@
         <span class="badge badge-warning">In progress</span>
         {{else}}
         <span class="badge badge-success">Completed</span>
+        {{if .CanBilling}}<a href="/billing/new?encounter_id={{.Encounter.ID}}" class="button">Create Invoice</a>{{end}}
         <a href="/encounters/{{.Encounter.ID}}/print" class="button outline">Print</a>
         <form method="post" action="/encounters/{{.Encounter.ID}}/reopen" class="inline-form">
             <button type="submit" class="outline" data-variant="danger">Reopen for editing</button>

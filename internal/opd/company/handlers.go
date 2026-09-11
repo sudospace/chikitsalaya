@@ -86,6 +86,8 @@ func parseCompanyForm(r *http.Request) (CompanyInput, error) {
 		FooterText:           r.PostForm.Get("footer_text"),
 		FirstConsultationFee: parseOptionalFloat(r.PostForm.Get("first_consultation_fee")),
 		FollowUpFee:          parseOptionalFloat(r.PostForm.Get("follow_up_fee")),
+		GSTIN:                r.PostForm.Get("gstin"),
+		GSTRegistered:        r.PostForm.Get("gst_registered") == "on",
 	}, nil
 }
 

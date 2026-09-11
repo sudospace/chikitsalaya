@@ -23,6 +23,7 @@ const (
 	ModuleLabTests        = "lab_tests"
 	ModuleProcedures      = "procedures"
 	ModuleUsers           = "users"
+	ModuleBilling         = "billing"
 )
 
 const (
@@ -51,15 +52,21 @@ var AllModules = []ModuleInfo{
 	{ModuleLabTests, "Lab Tests"},
 	{ModuleProcedures, "Procedures"},
 	{ModuleUsers, "Users"},
+	{ModuleBilling, "Billing"},
 }
 
 // StaffDefaultPermissions is pre-checked on a doctor/receptionist creation
-// form: full clinical access, read-only practitioner directory, no admin modules.
+// form: full clinical access, read-only practitioner directory, no admin
+// modules. Note: this map isn't role-specific, so Billing's inclusion here
+// (wanted for receptionist, per the checkout workflow) also pre-checks it
+// for a freshly created doctor — there's no per-role default map to split
+// it out further; an admin can still uncheck it per-user on the form.
 var StaffDefaultPermissions = map[string]string{
 	ModulePatients:      AccessEdit,
 	ModulePractitioners: AccessView,
 	ModuleAppointments:  AccessEdit,
 	ModuleEncounters:    AccessEdit,
+	ModuleBilling:       AccessEdit,
 }
 
 // AdminDefaultPermissions is pre-checked for a freshly created admin: full
