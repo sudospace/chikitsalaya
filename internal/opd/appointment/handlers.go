@@ -1,6 +1,7 @@
 package appointment
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -240,6 +241,31 @@ func (h *Handlers) Slots(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+type weekdaysResponse struct {
+	Weekdays []int `json:"weekdays"`
+}
+
+// AvailableWeekdays answers a lighter, earlier question than Slots: which
+// days of the week (0=Sunday..6=Saturday, matching schedule.Schedule's own
+// convention) does this practitioner have any active recurring schedule on
+// at all -- regardless of existing bookings on a specific date. The booking
+// calendar uses this to gray out days that could never have a slot before
+// the visitor even picks one.
+func (h *Handlers) AvailableWeekdays(w http.ResponseWriter, r *http.Request) {
+	practitionerID, err := strconv.ParseInt(r.URL.Query().Get("practitioner_id"), 10, 64)
+	if err != nil {
+		http.Error(w, "invalid practitioner_id", http.StatusBadRequest)
+		return
+	}
+	weekdays, err := h.ScheduleStore.ActiveWeekdays(r.Context(), practitionerID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(weekdaysResponse{Weekdays: weekdays})
+}
+
 func (h *Handlers) availableSlots(r *http.Request, practitionerID int64, date time.Time) ([]Slot, error) {
 	schedules, err := h.ScheduleStore.ListByPractitioner(r.Context(), practitionerID)
 	if err != nil {
@@ -347,4 +373,3 @@ func (h *Handlers) UpdateStatus(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/appointments?practitioner_id="+strconv.FormatInt(appt.PractitionerID, 10)+
 		"&date="+appt.ScheduledAt.Format(dateLayout), http.StatusSeeOther)
 }
-

@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="/static/app.css">
     <script src="/static/oat/oat.min.js" defer></script>
     <script src="/static/htmx.min.js" defer></script>
+    <script src="/static/app.js" defer></script>
 </head>
 <body>
 <main class="container">
@@ -17,12 +18,17 @@
     {{if .Error}}<div role="alert" data-variant="error">{{.Error}}</div>{{end}}
 
     <form method="post" action="/book/appointments/{{.Appointment.ID}}/reschedule" id="reschedule-form">
-        <label data-field>
-            New date
-            <input type="date" name="date" value="{{.Date}}" required
-                   hx-get="/book/appointments/{{.Appointment.ID}}/reschedule/slots"
-                   hx-include="#reschedule-form" hx-target="#slot-grid" hx-trigger="load, change">
-        </label>
+        <div data-field>
+            <label>New date</label>
+            <div class="availability-date" data-availability-widget
+                 data-weekdays-endpoint="/book/available-weekdays" data-practitioner-id="{{.Appointment.PractitionerID}}">
+                <button type="button" class="outline availability-date-trigger" data-availability-trigger disabled>Loading&hellip;</button>
+                <input type="hidden" name="date" value="{{.Date}}" data-availability-value
+                       hx-get="/book/appointments/{{.Appointment.ID}}/reschedule/slots"
+                       hx-include="#reschedule-form" hx-target="#slot-grid" hx-trigger="change, load">
+                <div class="availability-calendar" data-availability-calendar hidden></div>
+            </div>
+        </div>
         <div data-field>
             <label>Available times</label>
             <div id="slot-grid">

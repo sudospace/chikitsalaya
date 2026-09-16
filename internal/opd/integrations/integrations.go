@@ -17,6 +17,7 @@ const (
 	ModuleSMS     Module = "sms"
 	ModuleEmail   Module = "email"
 	ModulePayment Module = "payment"
+	ModuleStorage Module = "storage"
 )
 
 type Integration struct {

@@ -7,7 +7,9 @@ import (
 	"html/template"
 	"net/http"
 	"path/filepath"
+	"strconv"
 	"strings"
+	"time"
 )
 
 // Chrome is the header/branding info the "base" shell needs, resolved
@@ -48,6 +50,7 @@ type Renderer struct {
 	baseShell  *template.Template
 	authShell  *template.Template
 	resolve    ChromeResolver
+	assetVer   string // cache-busts /static/app.css|app.js; set once at boot, so a browser always fetches the latest after a deploy
 }
 
 func NewRenderer() (*Renderer, error) {
@@ -103,7 +106,10 @@ func NewRenderer() (*Renderer, error) {
 		standalone[filepath.Base(sf)] = tmpl
 	}
 
-	return &Renderer{pages: pages, partials: partials, standalone: standalone, baseShell: baseShell, authShell: authShell}, nil
+	return &Renderer{
+		pages: pages, partials: partials, standalone: standalone, baseShell: baseShell, authShell: authShell,
+		assetVer: strconv.FormatInt(time.Now().Unix(), 10),
+	}, nil
 }
 
 // SetChromeResolver wires up per-request branding. Separate from NewRenderer
@@ -114,9 +120,10 @@ func (r *Renderer) SetChromeResolver(resolve ChromeResolver) {
 }
 
 type shellData struct {
-	Title   string
-	Content template.HTML
-	Chrome  Chrome
+	Title    string
+	Content  template.HTML
+	Chrome   Chrome
+	AssetVer string
 }
 
 func (r *Renderer) Render(w http.ResponseWriter, req *http.Request, page string, data any) {
@@ -136,7 +143,7 @@ func (r *Renderer) Render(w http.ResponseWriter, req *http.Request, page string,
 		return
 	}
 
-	sd := shellData{Title: titleBuf.String(), Content: template.HTML(contentBuf.String())}
+	sd := shellData{Title: titleBuf.String(), Content: template.HTML(contentBuf.String()), AssetVer: r.assetVer}
 	shell := r.baseShell
 	if entry.authPage {
 		shell = r.authShell

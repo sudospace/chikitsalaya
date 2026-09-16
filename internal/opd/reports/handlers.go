@@ -93,15 +93,19 @@ func (h *Handlers) resolveRange(ctx context.Context, r *http.Request) (start, en
 }
 
 type reportsData struct {
-	Range           string
-	From, To        string // yyyy-mm-dd, for the custom-range form and the CSV link
-	IsDoctorScoped  bool
-	Practitioners   []practitioner.Practitioner
-	SelectedPractID int64 // 0 = "all", only meaningful when !IsDoctorScoped
-	ByPractitioner  []PractitionerRevenue
-	ByLab           []LineItemRevenue
-	ByProcedure     []LineItemRevenue
-	ByDrug          []LineItemRevenue
+	Range            string
+	From, To         string // yyyy-mm-dd, for the custom-range form and the CSV link
+	IsDoctorScoped   bool
+	Practitioners    []practitioner.Practitioner
+	SelectedPractID  int64 // 0 = "all", only meaningful when !IsDoctorScoped
+	TotalInvoices    int
+	TotalBilled      float64
+	TotalCollected   float64
+	TotalOutstanding float64
+	ByPractitioner   []PractitionerRevenue
+	ByLab            []LineItemRevenue
+	ByProcedure      []LineItemRevenue
+	ByDrug           []LineItemRevenue
 }
 
 func (h *Handlers) Index(w http.ResponseWriter, r *http.Request) {
@@ -145,6 +149,12 @@ func (h *Handlers) Index(w http.ResponseWriter, r *http.Request) {
 		IsDoctorScoped: isDoctorScoped,
 		ByPractitioner: byPract, ByLab: byLab, ByProcedure: byProcedure, ByDrug: byDrug,
 	}
+	for _, pr := range byPract {
+		data.TotalInvoices += pr.InvoiceCount
+		data.TotalBilled += pr.Billed
+		data.TotalCollected += pr.Collected
+	}
+	data.TotalOutstanding = data.TotalBilled - data.TotalCollected
 	if !isDoctorScoped {
 		practitioners, err := h.PractitionerStore.List(ctx)
 		if err != nil {

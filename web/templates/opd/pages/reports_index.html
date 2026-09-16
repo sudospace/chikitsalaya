@@ -5,11 +5,12 @@
     <a href="/reports/ledger.csv?range={{.Range}}{{if not .IsDoctorScoped}}{{if .SelectedPractID}}&practitioner_id={{.SelectedPractID}}{{end}}{{end}}" class="button outline">Download CSV</a>
 </div>
 
-<div class="hstack">
+<div class="hstack" style="margin-block-end: 1rem;">
     <a href="/reports?range=today" class="button small {{if ne .Range "today"}}outline{{end}}">Today</a>
     <a href="/reports?range=week" class="button small {{if ne .Range "week"}}outline{{end}}">This Week</a>
     <a href="/reports?range=month" class="button small {{if ne .Range "month"}}outline{{end}}">This Month</a>
     <a href="/reports?range=fy" class="button small {{if ne .Range "fy"}}outline{{end}}">This FY</a>
+    <a href="/reports?range=custom&from={{.From}}&to={{.To}}" class="button small {{if ne .Range "custom"}}outline{{end}}">Custom</a>
 </div>
 
 <form method="get" action="/reports">
@@ -37,76 +38,92 @@
         {{end}}
         <div data-field>
             <label>&nbsp;</label>
-            <button type="submit">Apply</button>
+            <button type="submit" class="outline small">Apply</button>
         </div>
     </div>
 </form>
 
+<div class="stat-row">
+    <div class="stat-tile stat-tile-primary">
+        <span class="stat-value">{{.TotalInvoices}}</span>
+        <span class="stat-label">Invoices{{if .IsDoctorScoped}} (you){{end}}</span>
+    </div>
+    <div class="stat-tile">
+        <span class="stat-value">₹{{printf "%.2f" .TotalBilled}}</span>
+        <span class="stat-label">Billed</span>
+    </div>
+    <div class="stat-tile stat-tile-success">
+        <span class="stat-value">₹{{printf "%.2f" .TotalCollected}}</span>
+        <span class="stat-label">Collected</span>
+    </div>
+    <div class="stat-tile{{if gt .TotalOutstanding 0.0}} stat-tile-warning{{end}}">
+        <span class="stat-value">₹{{printf "%.2f" .TotalOutstanding}}</span>
+        <span class="stat-label">Outstanding</span>
+    </div>
+</div>
+
+{{if not .IsDoctorScoped}}
 <article class="card">
-    <header><h3>Revenue{{if .IsDoctorScoped}} (your own){{else}} by doctor{{end}}</h3></header>
+    <header><h3>By doctor</h3></header>
     <table>
-        <thead>
-            <tr>
-                {{if not .IsDoctorScoped}}<th>Doctor</th>{{end}}
-                <th>Invoices</th>
-                <th>Billed</th>
-                <th>Collected</th>
-            </tr>
-        </thead>
+        <thead><tr><th>Doctor</th><th>Invoices</th><th>Billed</th><th>Collected</th></tr></thead>
         <tbody>
             {{range .ByPractitioner}}
             <tr>
-                {{if not $.IsDoctorScoped}}<td>{{.PractitionerName}}</td>{{end}}
+                <td>{{.PractitionerName}}</td>
                 <td>{{.InvoiceCount}}</td>
-                <td>{{printf "%.2f" .Billed}}</td>
-                <td>{{printf "%.2f" .Collected}}</td>
+                <td>₹{{printf "%.2f" .Billed}}</td>
+                <td>₹{{printf "%.2f" .Collected}}</td>
             </tr>
             {{else}}
-            <tr><td colspan="{{if .IsDoctorScoped}}3{{else}}4{{end}}">No invoices in this range.</td></tr>
+            <tr><td colspan="4">No invoices in this range.</td></tr>
             {{end}}
         </tbody>
     </table>
 </article>
+{{end}}
 
-<article class="card">
-    <header><h3>Lab tests</h3></header>
-    <table>
-        <thead><tr><th>Test</th><th>Count</th><th>Amount</th></tr></thead>
-        <tbody>
-            {{range .ByLab}}
-            <tr><td>{{.Description}}</td><td>{{.Count}}</td><td>{{printf "%.2f" .Amount}}</td></tr>
-            {{else}}
-            <tr><td colspan="3">No lab charges in this range.</td></tr>
-            {{end}}
-        </tbody>
-    </table>
-</article>
+<div class="row">
+    <article class="card col-4">
+        <header><h3>Lab tests</h3></header>
+        <table>
+            <thead><tr><th>Test</th><th>Count</th><th>Amount</th></tr></thead>
+            <tbody>
+                {{range .ByLab}}
+                <tr><td>{{.Description}}</td><td>{{.Count}}</td><td>₹{{printf "%.2f" .Amount}}</td></tr>
+                {{else}}
+                <tr><td colspan="3"><small>None in this range.</small></td></tr>
+                {{end}}
+            </tbody>
+        </table>
+    </article>
 
-<article class="card">
-    <header><h3>Procedures</h3></header>
-    <table>
-        <thead><tr><th>Procedure</th><th>Count</th><th>Amount</th></tr></thead>
-        <tbody>
-            {{range .ByProcedure}}
-            <tr><td>{{.Description}}</td><td>{{.Count}}</td><td>{{printf "%.2f" .Amount}}</td></tr>
-            {{else}}
-            <tr><td colspan="3">No procedure charges in this range.</td></tr>
-            {{end}}
-        </tbody>
-    </table>
-</article>
+    <article class="card col-4">
+        <header><h3>Procedures</h3></header>
+        <table>
+            <thead><tr><th>Procedure</th><th>Count</th><th>Amount</th></tr></thead>
+            <tbody>
+                {{range .ByProcedure}}
+                <tr><td>{{.Description}}</td><td>{{.Count}}</td><td>₹{{printf "%.2f" .Amount}}</td></tr>
+                {{else}}
+                <tr><td colspan="3"><small>None in this range.</small></td></tr>
+                {{end}}
+            </tbody>
+        </table>
+    </article>
 
-<article class="card">
-    <header><h3>Medications</h3></header>
-    <table>
-        <thead><tr><th>Drug</th><th>Count</th><th>Amount</th></tr></thead>
-        <tbody>
-            {{range .ByDrug}}
-            <tr><td>{{.Description}}</td><td>{{.Count}}</td><td>{{printf "%.2f" .Amount}}</td></tr>
-            {{else}}
-            <tr><td colspan="3">No drug charges in this range.</td></tr>
-            {{end}}
-        </tbody>
-    </table>
-</article>
+    <article class="card col-4">
+        <header><h3>Medications</h3></header>
+        <table>
+            <thead><tr><th>Drug</th><th>Count</th><th>Amount</th></tr></thead>
+            <tbody>
+                {{range .ByDrug}}
+                <tr><td>{{.Description}}</td><td>{{.Count}}</td><td>₹{{printf "%.2f" .Amount}}</td></tr>
+                {{else}}
+                <tr><td colspan="3"><small>None in this range.</small></td></tr>
+                {{end}}
+            </tbody>
+        </table>
+    </article>
+</div>
 {{end}}

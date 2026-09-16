@@ -375,6 +375,32 @@ article + .card {
     box-shadow: var(--shadow-medium);
 }
 
+/* Grid items (Oat's .row/.col-*) default to a min-width based on their
+   content's intrinsic size, and a table's own 320px min-width (below) is
+   wider than a narrow 3-up column -- without this, the table (not just
+   the grid item) renders at 320px regardless of its card's actual width
+   and visually bleeds past the card's rounded border/shadow, making that
+   one card look bigger than its siblings even though its own box is the
+   same width. */
+.row > .card {
+    min-width: 0;
+}
+
+/* The "spacing between stacked cards" rule above (.card + .card) also
+   matches cards that are horizontally adjacent siblings inside a .row grid
+   (e.g. three report tiles side by side) -- it was pushing every card but
+   the first down within its own equal-height grid cell via margin-top,
+   making that first card look taller than its siblings even though all
+   three actually share the same row height. The grid's own gap already
+   spaces .row children correctly, so cancel it here. */
+.row > .card + .card {
+    margin-top: 0;
+}
+
+.row > .card table {
+    min-width: 0;
+}
+
 /* Tables scroll horizontally within themselves instead of breaking page
    layout on narrow viewports. */
 table {
@@ -750,6 +776,163 @@ table td:has(> input[type="radio"]) {
     max-width: 7rem;
 }
 
+/* ---- Record list: compact horizontal card-per-row, replaces <table> on
+   list pages (Appointments, Patients, Billing, admin catalogs, etc.). ---- */
+
+.record-list-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0 1rem;
+    margin-block-end: 0.4rem;
+    color: var(--muted-foreground);
+    font-size: var(--text-8);
+    font-weight: var(--font-medium);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.record-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.record-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+    padding: 0.75rem 1rem;
+    background-color: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-medium);
+    box-shadow: var(--shadow-small);
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.record-row:hover {
+    border-color: color-mix(in srgb, var(--primary) 30%, var(--border));
+    box-shadow: var(--shadow-medium);
+}
+
+.record-row-main,
+.record-row-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.3rem 0.85rem;
+    min-width: 0;
+}
+
+.record-row-main {
+    flex: 1 1 220px;
+    font-weight: var(--font-medium);
+}
+
+.record-row-meta {
+    flex: 2 1 320px;
+    color: var(--muted-foreground);
+    font-size: var(--text-7);
+}
+
+/* Actions sit flush right without the narrow table-column width cap
+   .row-actions normally has, since a card row has room to spare. */
+.record-row .row-actions {
+    flex: 0 0 auto;
+    max-width: none;
+    margin-inline-start: auto;
+}
+
+.record-empty {
+    padding: 1.5rem 1rem;
+    text-align: center;
+    color: var(--muted-foreground);
+    background-color: var(--card);
+    border: 1px dashed var(--border);
+    border-radius: var(--radius-medium);
+    margin: 0;
+}
+
+@media (max-width: 640px) {
+    .record-list-header {
+        display: none;
+    }
+
+    .record-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .record-row .row-actions {
+        margin-inline-start: 0;
+    }
+}
+
+/* ---- Patient documents (upload bar + file name/description stacking) ---- */
+
+/* A bounded, visually distinct drop zone -- not just fields floating in
+   the card's own whitespace, so it reads as one contained action instead
+   of blending into the list below it. */
+.document-upload {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding: 1rem;
+    margin-block-end: 1rem;
+    background-color: var(--accent);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-medium);
+}
+
+.document-upload input[type="file"] {
+    flex: 0 1 auto;
+    max-width: 16rem;
+}
+
+.document-upload input[type="text"] {
+    flex: 1 1 220px;
+    margin-block-start: 0;
+}
+
+.document-upload button {
+    flex: 0 0 auto;
+}
+
+.document-upload-hint {
+    margin-block: -0.5rem 1rem;
+    color: var(--muted-foreground);
+}
+
+/* Name + description stack as their own two-line block regardless of the
+   row's own flex-wrap, instead of running together inline. */
+.document-name {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+}
+
+.document-filename {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 28rem;
+}
+
+@media (max-width: 640px) {
+    .document-upload input[type="file"],
+    .document-upload input[type="text"] {
+        max-width: none;
+        flex-basis: 100%;
+    }
+
+    .document-filename {
+        max-width: 100%;
+    }
+}
+
 /* ---- List/section page headers (title + primary action) ---- */
 
 .page-header {
@@ -898,5 +1081,117 @@ table td:has(> input[type="radio"]) {
     .navbar-profile-label {
         max-width: none;
     }
+}
+
+/* ---- Availability-aware date picker (booking calendar) ----
+   A native <input type="date"> can't gray out specific days, so a
+   practitioner's actual working weekdays are enforced by this small
+   custom calendar instead. See [data-availability-widget] in app.js. */
+
+.availability-date {
+    position: relative;
+}
+
+.availability-date-trigger {
+    display: block;
+    width: 100%;
+    text-align: left;
+    color: var(--foreground);
+    background-color: var(--card);
+}
+
+.availability-date-trigger:disabled {
+    color: var(--muted-foreground);
+    cursor: not-allowed;
+}
+
+.availability-calendar {
+    position: absolute;
+    top: calc(100% + 0.35rem);
+    left: 0;
+    z-index: 30;
+    width: 18rem;
+    max-width: 90vw;
+    background-color: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-medium);
+    box-shadow: var(--shadow-large);
+    padding: 0.75rem;
+}
+
+.availability-calendar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-block-end: 0.5rem;
+    font-weight: var(--font-medium);
+}
+
+.availability-calendar-nav {
+    background: none;
+    border: none;
+    box-shadow: none;
+    padding: 0.25rem 0.5rem;
+    cursor: pointer;
+    color: var(--foreground);
+    font-size: var(--text-6);
+}
+
+.availability-calendar-nav:disabled {
+    color: var(--muted-foreground);
+    cursor: not-allowed;
+}
+
+.availability-calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.15rem;
+}
+
+.availability-calendar-weekday {
+    text-align: center;
+    font-size: var(--text-8);
+    color: var(--muted-foreground);
+    padding-block-end: 0.25rem;
+}
+
+.availability-calendar-day {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: 1px solid transparent;
+    box-shadow: none;
+    border-radius: var(--radius-small);
+    font-size: var(--text-7);
+    color: var(--foreground);
+    cursor: pointer;
+}
+
+.availability-calendar-day:hover:not(:disabled) {
+    background-color: var(--accent);
+    border-color: var(--border);
+}
+
+.availability-calendar-day:disabled {
+    color: var(--muted-foreground);
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.availability-calendar-day.is-today {
+    border-color: var(--primary);
+}
+
+.availability-calendar-empty-cell {
+    aspect-ratio: 1;
+}
+
+.availability-calendar-note {
+    margin-block-start: 0.5rem;
+    color: var(--muted-foreground);
+    font-size: var(--text-8);
+    text-align: center;
 }
 

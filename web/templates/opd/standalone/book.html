@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="/static/app.css">
     <script src="/static/oat/oat.min.js" defer></script>
     <script src="/static/htmx.min.js" defer></script>
+    <script src="/static/app.js" defer></script>
 </head>
 <body>
 <main class="container">
@@ -100,11 +101,16 @@
                             {{end}}
                         </select>
                     </div>
-                    <label data-field>
-                        Date
-                        <input type="date" name="date" value="{{.Date}}" required
-                               hx-get="/book/slots" hx-include="#booking-form" hx-target="#slot-grid" hx-trigger="change">
-                    </label>
+                    <div data-field>
+                        <label>Date</label>
+                        <div class="availability-date" data-availability-widget
+                             data-weekdays-endpoint="/book/available-weekdays" data-practitioner-select="practitioner_id">
+                            <button type="button" class="outline availability-date-trigger" data-availability-trigger disabled>Select a doctor first</button>
+                            <input type="hidden" name="date" value="{{.Date}}" data-availability-value
+                                   hx-get="/book/slots" hx-include="#booking-form" hx-target="#slot-grid" hx-trigger="change">
+                            <div class="availability-calendar" data-availability-calendar hidden></div>
+                        </div>
+                    </div>
                 </div>
 
                 <div data-field>

@@ -40,20 +40,20 @@ type Invoice struct {
 }
 
 type LineItem struct {
-	ID                  int64
-	InvoiceID           int64
-	Kind                string
-	Description         string
-	HSNSACCode          string
-	Quantity            float64
-	UnitPrice           float64
-	Amount              float64
-	TaxRate             float64
-	TaxAmount           float64
-	LabOrderID          *int64
-	ProcedureOrderID    *int64
-	PrescriptionItemID  *int64
-	SortOrder           int
+	ID                 int64
+	InvoiceID          int64
+	Kind               string
+	Description        string
+	HSNSACCode         string
+	Quantity           float64
+	UnitPrice          float64
+	Amount             float64
+	TaxRate            float64
+	TaxAmount          float64
+	LabOrderID         *int64
+	ProcedureOrderID   *int64
+	PrescriptionItemID *int64
+	SortOrder          int
 }
 
 type Payment struct {

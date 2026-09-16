@@ -129,6 +129,19 @@ document.addEventListener("change", function (e) {
 	});
 });
 
+// Storage backend picker (Integrations): same shape as the toggles above.
+document.addEventListener("change", function (e) {
+	var radio = e.target.closest("[data-storage-mode]");
+	if (!radio) return;
+	document.querySelectorAll("[data-storage-panel]").forEach(function (panel) {
+		var active = panel.getAttribute("data-storage-panel") === radio.value;
+		panel.hidden = !active;
+		panel.querySelectorAll("input, select, textarea").forEach(function (field) {
+			field.disabled = !active;
+		});
+	});
+});
+
 // Catalog picker fields share one floating results container per field
 // *type*, anchored via position:fixed under the active input (fixed, not
 // absolute, so it isn't clipped by the table's own overflow-x:auto).
@@ -656,4 +669,225 @@ document.querySelectorAll("[data-tabs]").forEach(function (nav) {
 		targetID = firstBtn && firstBtn.getAttribute("data-tab-target");
 	}
 	if (targetID) activateAccountTab(nav, targetID);
+});
+
+// Availability-aware booking calendar: a native <input type="date"> can't
+// gray out specific days, so [data-availability-widget] pairs a hidden
+// date input (keeps the existing name="date"/hx-* wiring, just moved off
+// the visible element) with a small custom month-grid calendar that only
+// lets you pick a day the selected practitioner actually works. Scoped to
+// the widget element like the patient-search widget above, so more than
+// one instance (or none) can exist per page with no id collisions.
+var DAY_ABBR = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+var MONTH_ABBR = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+function formatISODate(y, m, d) {
+	return y + "-" + String(m + 1).padStart(2, "0") + "-" + String(d).padStart(2, "0");
+}
+
+function formatDisplayDate(iso) {
+	var parts = (iso || "").split("-");
+	if (parts.length !== 3) return "Select a date";
+	var y = parseInt(parts[0], 10), m = parseInt(parts[1], 10), d = parseInt(parts[2], 10);
+	return d + " " + MONTH_ABBR[m - 1] + " " + y;
+}
+
+// Resolves the practitioner id a widget currently cares about: either a
+// fixed value (book_reschedule's practitioner is already chosen, no
+// select to watch) or the live value of a named <select> elsewhere in the
+// same form.
+function availabilityPractitionerID(widget) {
+	var fixed = widget.getAttribute("data-practitioner-id");
+	if (fixed) return fixed;
+	var selectName = widget.getAttribute("data-practitioner-select");
+	var form = widget.closest("form");
+	var select = selectName && form && form.querySelector('[name="' + selectName + '"]');
+	return (select && select.value) || "";
+}
+
+function availabilityTrigger(widget) {
+	return widget.querySelector("[data-availability-trigger]");
+}
+
+function availabilityValueInput(widget) {
+	return widget.querySelector("[data-availability-value]");
+}
+
+function availabilityCalendarEl(widget) {
+	return widget.querySelector("[data-availability-calendar]");
+}
+
+function closeAvailabilityCalendar(widget) {
+	var cal = availabilityCalendarEl(widget);
+	if (cal) cal.hidden = true;
+}
+
+function closeAllAvailabilityCalendars(except) {
+	document.querySelectorAll("[data-availability-widget]").forEach(function (w) {
+		if (w !== except) closeAvailabilityCalendar(w);
+	});
+}
+
+// Re-fetches which weekdays the current practitioner works and refreshes
+// the trigger's enabled state. Called on load and whenever the watched
+// practitioner select changes.
+function refreshAvailabilityWidget(widget) {
+	var trigger = availabilityTrigger(widget);
+	var valueInput = availabilityValueInput(widget);
+	if (trigger) trigger.textContent = formatDisplayDate(valueInput && valueInput.value);
+
+	var practitionerID = availabilityPractitionerID(widget);
+	widget._allowedWeekdays = null;
+	closeAvailabilityCalendar(widget);
+
+	if (!practitionerID) {
+		if (trigger) {
+			trigger.disabled = true;
+			trigger.textContent = "Select a practitioner first";
+		}
+		return;
+	}
+
+	var endpoint = widget.getAttribute("data-weekdays-endpoint");
+	fetch(endpoint + "?practitioner_id=" + encodeURIComponent(practitionerID))
+		.then(function (resp) { return resp.ok ? resp.json() : { weekdays: [] }; })
+		.then(function (data) {
+			widget._allowedWeekdays = data.weekdays || [];
+			if (trigger) trigger.disabled = false;
+		})
+		.catch(function (err) {
+			console.error(err);
+			widget._allowedWeekdays = [];
+		});
+}
+
+// Renders the month grid for widget._viewYear/_viewMonth (0-indexed month,
+// JS Date convention), disabling past dates and any weekday not in
+// widget._allowedWeekdays.
+function renderAvailabilityCalendar(widget) {
+	var cal = availabilityCalendarEl(widget);
+	if (!cal) return;
+
+	var year = widget._viewYear, month = widget._viewMonth;
+	var allowed = widget._allowedWeekdays || [];
+	var today = new Date();
+	today.setHours(0, 0, 0, 0);
+
+	var firstOfMonth = new Date(year, month, 1);
+	var daysInMonth = new Date(year, month + 1, 0).getDate();
+	var startOffset = firstOfMonth.getDay();
+
+	var html = '<div class="availability-calendar-header">' +
+		'<button type="button" class="availability-calendar-nav small" data-availability-prev aria-label="Previous month">&lsaquo;</button>' +
+		"<span>" + MONTH_ABBR[month] + " " + year + "</span>" +
+		'<button type="button" class="availability-calendar-nav small" data-availability-next aria-label="Next month">&rsaquo;</button>' +
+		"</div>" +
+		'<div class="availability-calendar-grid">';
+
+	DAY_ABBR.forEach(function (d) {
+		html += '<div class="availability-calendar-weekday">' + d + "</div>";
+	});
+	for (var i = 0; i < startOffset; i++) {
+		html += '<div class="availability-calendar-empty-cell"></div>';
+	}
+	for (var day = 1; day <= daysInMonth; day++) {
+		var cellDate = new Date(year, month, day);
+		var weekday = cellDate.getDay();
+		var isPast = cellDate < today;
+		var isAllowed = allowed.indexOf(weekday) !== -1;
+		var disabled = isPast || !isAllowed;
+		var iso = formatISODate(year, month, day);
+		var isToday = cellDate.getTime() === today.getTime();
+		html += '<button type="button" class="availability-calendar-day' + (isToday ? " is-today" : "") + '"' +
+			(disabled ? " disabled" : "") +
+			' data-availability-day="' + iso + '"' +
+			' aria-label="' + DAY_ABBR[weekday] + " " + day + " " + MONTH_ABBR[month] + " " + year + '">' +
+			day + "</button>";
+	}
+	html += "</div>";
+	if (!allowed.length) {
+		html += '<p class="availability-calendar-note">This practitioner has no recurring schedule set up yet.</p>';
+	}
+	cal.innerHTML = html;
+}
+
+function openAvailabilityCalendar(widget) {
+	if (!widget._allowedWeekdays) return; // still loading, or no practitioner chosen
+	closeAllAvailabilityCalendars(widget);
+
+	var valueInput = availabilityValueInput(widget);
+	var current = valueInput && valueInput.value ? new Date(valueInput.value + "T00:00:00") : new Date();
+	if (widget._viewYear == null) {
+		widget._viewYear = current.getFullYear();
+		widget._viewMonth = current.getMonth();
+	}
+	renderAvailabilityCalendar(widget);
+	var cal = availabilityCalendarEl(widget);
+	if (cal) cal.hidden = false;
+}
+
+document.addEventListener("click", function (e) {
+	var trigger = e.target.closest("[data-availability-trigger]");
+	if (trigger) {
+		var widget = trigger.closest("[data-availability-widget]");
+		if (!widget) return;
+		var cal = availabilityCalendarEl(widget);
+		if (cal && !cal.hidden) {
+			closeAvailabilityCalendar(widget);
+		} else {
+			openAvailabilityCalendar(widget);
+		}
+		return;
+	}
+
+	var prev = e.target.closest("[data-availability-prev]");
+	var next = e.target.closest("[data-availability-next]");
+	if (prev || next) {
+		var widget2 = e.target.closest("[data-availability-widget]");
+		if (!widget2) return;
+		widget2._viewMonth += prev ? -1 : 1;
+		if (widget2._viewMonth < 0) { widget2._viewMonth = 11; widget2._viewYear--; }
+		if (widget2._viewMonth > 11) { widget2._viewMonth = 0; widget2._viewYear++; }
+		renderAvailabilityCalendar(widget2);
+		return;
+	}
+
+	var day = e.target.closest("[data-availability-day]");
+	if (day) {
+		var widget3 = day.closest("[data-availability-widget]");
+		if (!widget3) return;
+		var iso = day.getAttribute("data-availability-day");
+		var valueInput3 = availabilityValueInput(widget3);
+		if (valueInput3) {
+			valueInput3.value = iso;
+			valueInput3.dispatchEvent(new Event("change", { bubbles: true }));
+		}
+		var trigger3 = availabilityTrigger(widget3);
+		if (trigger3) trigger3.textContent = formatDisplayDate(iso);
+		closeAvailabilityCalendar(widget3);
+		return;
+	}
+
+	// Any other click closes an open calendar, unless it's inside one.
+	if (!e.target.closest("[data-availability-calendar]")) closeAllAvailabilityCalendars();
+});
+
+document.addEventListener("keydown", function (e) {
+	if (e.key === "Escape") closeAllAvailabilityCalendars();
+});
+
+// The practitioner select a widget watches lives elsewhere in the same
+// form -- re-resolve availability whenever any select changes, cheap
+// enough not to bother checking which widget (if any) cares first.
+document.addEventListener("change", function (e) {
+	if (!e.target.matches("select")) return;
+	document.querySelectorAll("[data-availability-widget]").forEach(function (widget) {
+		if (widget.getAttribute("data-practitioner-select") === e.target.name) {
+			refreshAvailabilityWidget(widget);
+		}
+	});
+});
+
+document.querySelectorAll("[data-availability-widget]").forEach(function (widget) {
+	refreshAvailabilityWidget(widget);
 });

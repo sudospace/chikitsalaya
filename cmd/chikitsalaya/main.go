@@ -23,6 +23,7 @@ import (
 	"chikitsalaya/internal/opd/booking"
 	"chikitsalaya/internal/opd/company"
 	"chikitsalaya/internal/opd/dashboard"
+	"chikitsalaya/internal/opd/document"
 	"chikitsalaya/internal/opd/encounter"
 	"chikitsalaya/internal/opd/integrations"
 	"chikitsalaya/internal/opd/inventory"
@@ -34,6 +35,7 @@ import (
 	"chikitsalaya/internal/opd/reports"
 	"chikitsalaya/internal/opd/schedule"
 	"chikitsalaya/internal/opd/staff"
+	"chikitsalaya/internal/storage"
 	"chikitsalaya/internal/web"
 )
 
@@ -88,8 +90,27 @@ func main() {
 	sm := auth.NewSessionManager(pool)
 	authHandlers := auth.NewHandlers(userStore, sm, renderer)
 
+	integrationsStore := integrations.NewStore(pool)
+
+	storageRegistry := &storage.Registry{
+		Integrations: integrationsStore,
+		LocalRoot:    "data/uploads/documents",
+		LocalKey:     cfg.LocalStorageKey,
+	}
+	// Fail fast at boot if the clinic's chosen storage backend can't
+	// actually be used (e.g. local encryption selected with no/bad key) --
+	// better than a confusing failure on the first document upload.
+	if activeBackend, err := storageRegistry.Active(ctx); err != nil {
+		log.Fatalf("determine active storage backend: %v", err)
+	} else if _, err := storageRegistry.Resolve(ctx, activeBackend); err != nil {
+		log.Fatalf("storage backend %q not usable: %v", activeBackend, err)
+	}
+
+	documentStore := document.NewStore(pool)
+	documentHandlers := document.NewHandlers(documentStore, storageRegistry, sm, renderer)
+
 	patientStore := patient.NewStore(pool)
-	patientHandlers := patient.NewHandlers(patientStore, renderer)
+	patientHandlers := patient.NewHandlers(patientStore, documentStore, permStore, sm, renderer)
 
 	companyHandlers := company.NewHandlers(companyStore, sm, renderer)
 
@@ -157,7 +178,6 @@ func main() {
 	encounterStore := encounter.NewStore(pool)
 	encounterHandlers := encounter.NewHandlers(encounterStore, appointmentStore, practitionerStore, inventoryStore, mastersStore, companyStore, patientStore, userStore, permStore, sm, renderer)
 
-	integrationsStore := integrations.NewStore(pool)
 	integrationsHandlers := integrations.NewHandlers(integrationsStore, sm, renderer)
 
 	otpStore := booking.NewOTPStore(pool)
@@ -196,6 +216,7 @@ func main() {
 		bk.Get("/", bookingHandlers.Index)
 		bk.Post("/", bookingHandlers.Create)
 		bk.Get("/slots", bookingHandlers.Slots)
+		bk.Get("/available-weekdays", bookingHandlers.AvailableWeekdays)
 		bk.Post("/otp/request", bookingHandlers.RequestOTP)
 		bk.Post("/otp/verify", bookingHandlers.VerifyOTP)
 		bk.Post("/logout", bookingHandlers.Logout)
@@ -264,6 +285,7 @@ func main() {
 			ar.With(edit(auth.ModuleIntegrations)).Post("/integrations/sms", integrationsHandlers.UpdateSMS)
 			ar.With(edit(auth.ModuleIntegrations)).Post("/integrations/email", integrationsHandlers.UpdateEmail)
 			ar.With(edit(auth.ModuleIntegrations)).Post("/integrations/payment", integrationsHandlers.UpdatePayment)
+			ar.With(edit(auth.ModuleIntegrations)).Post("/integrations/storage", integrationsHandlers.UpdateStorage)
 
 			ar.Route("/service-units", func(sr chi.Router) {
 				sr.Use(view(auth.ModuleServiceUnits))
@@ -346,6 +368,16 @@ func main() {
 			pt.Get("/{id}/history", encounterHandlers.PatientHistory)
 		})
 
+		// A separate top-level group, deliberately not nested under
+		// /patients above -- Patient Documents is its own module, so
+		// access to one doesn't require or imply access to the other.
+		pr.Route("/patients/{id}/documents", func(dr chi.Router) {
+			dr.Use(view(auth.ModulePatientDocuments))
+			dr.Get("/{docID}/download", documentHandlers.Download)
+			dr.With(edit(auth.ModulePatientDocuments)).Post("/", documentHandlers.Upload)
+			dr.With(edit(auth.ModulePatientDocuments)).Post("/{docID}/delete", documentHandlers.Delete)
+		})
+
 		// Managing practitioners (new/edit/schedules) needs edit-level,
 		// under /admin/practitioners-manage above.
 		pr.Route("/practitioners", func(pc chi.Router) {
@@ -360,6 +392,7 @@ func main() {
 			ap.Get("/new", appointmentHandlers.New)
 			ap.Get("/new/search", appointmentHandlers.SearchPatients)
 			ap.Get("/slots", appointmentHandlers.Slots)
+			ap.Get("/available-weekdays", appointmentHandlers.AvailableWeekdays)
 			ap.With(edit(auth.ModuleAppointments)).Post("/", appointmentHandlers.Create)
 			ap.With(edit(auth.ModuleAppointments)).Post("/{id}/status", appointmentHandlers.UpdateStatus)
 			ap.With(edit(auth.ModulePatients)).Post("/new/patients", appointmentHandlers.CreatePatientForBooking)

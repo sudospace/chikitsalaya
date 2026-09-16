@@ -5,6 +5,7 @@ package booking
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"net/http"
 	"net/url"
@@ -270,6 +271,28 @@ func (h *Handlers) Slots(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	h.Renderer.RenderPartial(w, "appointment_slots", slotsData{Slots: available})
+}
+
+type weekdaysResponse struct {
+	Weekdays []int `json:"weekdays"`
+}
+
+// AvailableWeekdays mirrors appointment.Handlers.AvailableWeekdays for the
+// public booking flow -- which days of the week this practitioner works at
+// all, so the calendar can gray out impossible days before a date is picked.
+func (h *Handlers) AvailableWeekdays(w http.ResponseWriter, r *http.Request) {
+	practitionerID, err := strconv.ParseInt(r.URL.Query().Get("practitioner_id"), 10, 64)
+	if err != nil {
+		http.Error(w, "invalid practitioner_id", http.StatusBadRequest)
+		return
+	}
+	weekdays, err := h.ScheduleStore.ActiveWeekdays(r.Context(), practitionerID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(weekdaysResponse{Weekdays: weekdays})
 }
 
 func (h *Handlers) availableSlots(r *http.Request, practitionerID int64, date time.Time) ([]appointment.Slot, error) {

@@ -1,7 +1,7 @@
 {{define "title"}}Integrations — Chikitsalaya{{end}}
 {{define "content"}}
 <h1>Integrations</h1>
-<p>Configure this clinic's own SMS, email, and payment settings. Each is independent — set up only what you need.</p>
+<p>Configure this clinic's own SMS, email, payment, and storage settings. Each is independent — set up only what you need.</p>
 
 {{if .Saved}}<div role="alert" data-variant="success">Saved.</div>{{end}}
 {{if .Error}}<div role="alert" data-variant="error">{{.Error}}</div>{{end}}
@@ -114,6 +114,89 @@
             Active
         </label>
         <button type="submit">Save payment settings</button>
+    </form>
+</article>
+
+<article class="card">
+    <header><h3>Storage (patient documents)</h3></header>
+    <p><small>Where uploaded patient report files physically live. Local storage is encrypted at rest and fully
+        working today; Google Drive and S3 are configurable here but not yet wired up — picking either will save
+        your settings, but uploads will fail until that backend is implemented.</small></p>
+    <form method="post" action="/admin/integrations/storage">
+        <div class="hstack">
+            <label>
+                <input type="radio" name="provider" value="local" data-storage-mode
+                       {{if and (ne .Storage.Provider "gdrive") (ne .Storage.Provider "s3")}}checked{{end}}>
+                Local disk (encrypted)
+            </label>
+            <label>
+                <input type="radio" name="provider" value="gdrive" data-storage-mode
+                       {{if eq .Storage.Provider "gdrive"}}checked{{end}}>
+                Google Drive
+            </label>
+            <label>
+                <input type="radio" name="provider" value="s3" data-storage-mode
+                       {{if eq .Storage.Provider "s3"}}checked{{end}}>
+                S3-compatible
+            </label>
+        </div>
+
+        <div data-storage-panel="local" {{if or (eq .Storage.Provider "gdrive") (eq .Storage.Provider "s3")}}hidden{{end}}>
+            <p><small>The encryption key is set via the <code>CHIKITSALAYA_LOCAL_STORAGE_KEY</code> environment
+                variable on the server, not here — nothing to configure on this page for local storage.</small></p>
+        </div>
+
+        <div data-storage-panel="gdrive" {{if ne .Storage.Provider "gdrive"}}hidden{{end}}>
+            <p role="alert" data-variant="warning">Not yet available — uploads will fail until this backend is implemented.</p>
+            <div class="hstack">
+                <label data-field>
+                    Client ID
+                    <input type="text" name="gdrive_client_id" value="{{index .Storage.Config "gdrive_client_id"}}">
+                </label>
+                <label data-field>
+                    Client secret
+                    <input type="password" name="gdrive_client_secret" value="{{index .Storage.Config "gdrive_client_secret"}}">
+                </label>
+            </div>
+            <label data-field>
+                Folder ID (optional)
+                <input type="text" name="gdrive_folder_id" value="{{index .Storage.Config "gdrive_folder_id"}}">
+            </label>
+        </div>
+
+        <div data-storage-panel="s3" {{if ne .Storage.Provider "s3"}}hidden{{end}}>
+            <p role="alert" data-variant="warning">Not yet available — uploads will fail until this backend is implemented.</p>
+            <div class="hstack">
+                <label data-field>
+                    Bucket
+                    <input type="text" name="s3_bucket" value="{{index .Storage.Config "s3_bucket"}}">
+                </label>
+                <label data-field>
+                    Region
+                    <input type="text" name="s3_region" value="{{index .Storage.Config "s3_region"}}">
+                </label>
+            </div>
+            <div class="hstack">
+                <label data-field>
+                    Access key ID
+                    <input type="text" name="s3_access_key_id" value="{{index .Storage.Config "s3_access_key_id"}}">
+                </label>
+                <label data-field>
+                    Secret access key
+                    <input type="password" name="s3_secret_access_key" value="{{index .Storage.Config "s3_secret_access_key"}}">
+                </label>
+            </div>
+            <label data-field>
+                Endpoint (optional, for S3-compatible providers)
+                <input type="text" name="s3_endpoint" value="{{index .Storage.Config "s3_endpoint"}}">
+            </label>
+        </div>
+
+        <label data-field>
+            <input type="checkbox" name="is_active" {{if .Storage.IsActive}}checked{{end}}>
+            Active
+        </label>
+        <button type="submit">Save storage settings</button>
     </form>
 </article>
 {{end}}

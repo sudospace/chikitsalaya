@@ -22,6 +22,7 @@ type pageData struct {
 	SMS     *Integration
 	Email   *Integration
 	Payment *Integration
+	Storage *Integration
 	Saved   string
 	Error   string
 }
@@ -44,9 +45,14 @@ func (h *Handlers) Index(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	storageIntegration, err := h.Store.Get(ctx, ModuleStorage)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
 	h.Renderer.Render(w, r, "integrations.html", pageData{
-		SMS: sms, Email: email, Payment: payment,
+		SMS: sms, Email: email, Payment: payment, Storage: storageIntegration,
 		Saved: r.URL.Query().Get("saved"), Error: r.URL.Query().Get("error"),
 	})
 }
@@ -111,4 +117,34 @@ func (h *Handlers) UpdatePayment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	http.Redirect(w, r, "/admin/integrations?saved=payment", http.StatusSeeOther)
+}
+
+// UpdateStorage picks where patient document uploads physically live.
+// "local"'s encryption key comes from an env var, never through this form —
+// storing it in the same plaintext-JSONB config column as the other
+// modules' secrets would defeat the point of keeping it out of the DB.
+// gdrive/s3 are scaffolded: their credentials save here same as any other
+// module, but no file operation against them actually works yet.
+func (h *Handlers) UpdateStorage(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	provider := r.PostForm.Get("provider")
+	config := map[string]string{
+		"gdrive_client_id":     r.PostForm.Get("gdrive_client_id"),
+		"gdrive_client_secret": r.PostForm.Get("gdrive_client_secret"),
+		"gdrive_folder_id":     r.PostForm.Get("gdrive_folder_id"),
+		"s3_bucket":            r.PostForm.Get("s3_bucket"),
+		"s3_region":            r.PostForm.Get("s3_region"),
+		"s3_access_key_id":     r.PostForm.Get("s3_access_key_id"),
+		"s3_secret_access_key": r.PostForm.Get("s3_secret_access_key"),
+		"s3_endpoint":          r.PostForm.Get("s3_endpoint"),
+	}
+	isActive := r.PostForm.Get("is_active") == "on"
+	if err := h.Store.Upsert(r.Context(), ModuleStorage, provider, config, isActive); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	http.Redirect(w, r, "/admin/integrations?saved=storage", http.StatusSeeOther)
 }

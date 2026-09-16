@@ -1,36 +1,81 @@
-{{define "title"}}{{.FirstName}} {{.LastName}} — Chikitsalaya{{end}}
+{{define "title"}}{{.Patient.FirstName}} {{.Patient.LastName}} — Chikitsalaya{{end}}
 {{define "content"}}
 <div class="page-header">
-    <h1>{{.FirstName}} {{.LastName}}</h1>
+    <h1>{{.Patient.FirstName}} {{.Patient.LastName}}</h1>
     <div>
-        <a href="/appointments/new?patient_id={{.ID}}" class="button">Book Appointment</a>
-        <a href="/patients/{{.ID}}/history" class="button outline">History</a>
-        <a href="/patients/{{.ID}}/edit" class="button outline">Edit</a>
+        <a href="/appointments/new?patient_id={{.Patient.ID}}" class="button">Book Appointment</a>
+        <a href="/patients/{{.Patient.ID}}/history" class="button outline">History</a>
+        <a href="/patients/{{.Patient.ID}}/edit" class="button outline">Edit</a>
     </div>
 </div>
 
+{{if .Error}}<div role="alert" data-variant="error">{{.Error}}</div>{{end}}
+
 <article class="card">
     <dl>
-        <dt>MRN</dt><dd>{{.MRN}}</dd>
-        <dt>Age</dt><dd>{{if .Age}}{{.Age}}{{else}}—{{end}}</dd>
-        <dt>Sex</dt><dd>{{if .Sex}}{{.Sex}}{{else}}—{{end}}</dd>
-        <dt>Blood group</dt><dd>{{if .BloodGroup}}{{.BloodGroup}}{{else}}—{{end}}</dd>
-        <dt>Phone</dt><dd>{{if .Phone}}{{.Phone}}{{else}}—{{end}}</dd>
-        <dt>Email</dt><dd>{{if .Email}}{{.Email}}{{else}}—{{end}}</dd>
-        <dt>Address</dt><dd>{{if .Address}}{{.Address}}{{else}}—{{end}}</dd>
+        <dt>MRN</dt><dd>{{.Patient.MRN}}</dd>
+        <dt>Age</dt><dd>{{if .Patient.Age}}{{.Patient.Age}}{{else}}—{{end}}</dd>
+        <dt>Sex</dt><dd>{{if .Patient.Sex}}{{.Patient.Sex}}{{else}}—{{end}}</dd>
+        <dt>Blood group</dt><dd>{{if .Patient.BloodGroup}}{{.Patient.BloodGroup}}{{else}}—{{end}}</dd>
+        <dt>Phone</dt><dd>{{if .Patient.Phone}}{{.Patient.Phone}}{{else}}—{{end}}</dd>
+        <dt>Email</dt><dd>{{if .Patient.Email}}{{.Patient.Email}}{{else}}—{{end}}</dd>
+        <dt>Address</dt><dd>{{if .Patient.Address}}{{.Patient.Address}}{{else}}—{{end}}</dd>
         <dt>Emergency contact</dt>
-        <dd>{{if .EmergencyContactName}}{{.EmergencyContactName}} ({{.EmergencyContactPhone}}){{else}}—{{end}}</dd>
+        <dd>{{if .Patient.EmergencyContactName}}{{.Patient.EmergencyContactName}} ({{.Patient.EmergencyContactPhone}}){{else}}—{{end}}</dd>
     </dl>
 </article>
 
 <article class="card">
     <header><h3>Allergies</h3></header>
-    <p>{{if .Allergies}}{{.Allergies}}{{else}}None recorded.{{end}}</p>
+    <p>{{if .Patient.Allergies}}{{.Patient.Allergies}}{{else}}None recorded.{{end}}</p>
 </article>
 
 <article class="card">
     <header><h3>Medical history</h3></header>
-    <p>{{if .MedicalHistory}}{{.MedicalHistory}}{{else}}None recorded.{{end}}</p>
+    <p>{{if .Patient.MedicalHistory}}{{.Patient.MedicalHistory}}{{else}}None recorded.{{end}}</p>
+</article>
+
+<article class="card" id="documents">
+    <header><h3>Documents</h3></header>
+
+    {{if .CanEditDocuments}}
+    <form method="post" action="/patients/{{.Patient.ID}}/documents" enctype="multipart/form-data" class="document-upload">
+        <input type="file" name="file" required aria-label="File to upload">
+        <input type="text" name="description" placeholder="Description (optional), e.g. CBC report, 12 Sep">
+        <button type="submit">Upload</button>
+    </form>
+    <p class="document-upload-hint"><small>Any file type, up to 25MB.</small></p>
+    {{end}}
+
+    <div class="record-list-header">
+        <span class="record-row-main">File</span>
+        <span class="record-row-meta">Uploaded</span>
+    </div>
+    <div class="record-list">
+        {{range .Documents}}
+        <div class="record-row">
+            <div class="record-row-main">
+                <div class="document-name">
+                    <a href="/patients/{{.PatientID}}/documents/{{.ID}}/download" class="document-filename" title="{{.OriginalFilename}}">{{.OriginalFilename}}</a>
+                    {{if .Description}}<small>{{.Description}}</small>{{end}}
+                </div>
+            </div>
+            <div class="record-row-meta">
+                <span>{{.HumanSize}} &middot; {{if .UploadedByName}}{{.UploadedByName}}{{else}}—{{end}} &middot; {{.UploadedAt.Format "2 Jan 2006, 15:04"}}</span>
+            </div>
+            <div class="row-actions">
+                <a href="/patients/{{.PatientID}}/documents/{{.ID}}/download" class="small outline button">Download</a>
+                {{if $.CanEditDocuments}}
+                <form method="post" action="/patients/{{.PatientID}}/documents/{{.ID}}/delete" class="inline-form">
+                    <button type="submit" class="small outline" data-variant="danger">Delete</button>
+                </form>
+                {{end}}
+            </div>
+        </div>
+        {{else}}
+        <p class="record-empty">No documents uploaded yet.</p>
+        {{end}}
+    </div>
 </article>
 
 <p><a href="/patients">&larr; Back to patients</a></p>

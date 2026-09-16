@@ -11,20 +11,21 @@ import (
 // Module keys a login can be granted access to. Hardcoded rather than
 // database-driven — adding one means a constant here plus a route guard.
 const (
-	ModulePatients        = "patients"
-	ModulePractitioners   = "practitioners"
-	ModuleAppointments    = "appointments"
-	ModuleEncounters      = "encounters"
-	ModuleCompanySettings = "company_settings"
-	ModuleIntegrations    = "integrations"
-	ModuleServiceUnits    = "service_units"
-	ModuleDrugs           = "drugs"
-	ModuleLookupValues    = "lookup_values"
-	ModuleLabTests        = "lab_tests"
-	ModuleProcedures      = "procedures"
-	ModuleUsers           = "users"
-	ModuleBilling         = "billing"
-	ModuleReports         = "reports"
+	ModulePatients         = "patients"
+	ModulePractitioners    = "practitioners"
+	ModuleAppointments     = "appointments"
+	ModuleEncounters       = "encounters"
+	ModuleCompanySettings  = "company_settings"
+	ModuleIntegrations     = "integrations"
+	ModuleServiceUnits     = "service_units"
+	ModuleDrugs            = "drugs"
+	ModuleLookupValues     = "lookup_values"
+	ModuleLabTests         = "lab_tests"
+	ModuleProcedures       = "procedures"
+	ModuleUsers            = "users"
+	ModuleBilling          = "billing"
+	ModuleReports          = "reports"
+	ModulePatientDocuments = "patient_documents"
 )
 
 const (
@@ -55,6 +56,7 @@ var AllModules = []ModuleInfo{
 	{ModuleUsers, "Users"},
 	{ModuleBilling, "Billing"},
 	{ModuleReports, "Reports & Stats"},
+	{ModulePatientDocuments, "Patient Documents"},
 }
 
 // StaffDefaultPermissions is pre-checked on a doctor/receptionist creation

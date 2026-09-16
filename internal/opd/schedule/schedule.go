@@ -68,6 +68,31 @@ func (s *Store) ListByPractitioner(ctx context.Context, practitionerID int64) ([
 	return out, rows.Err()
 }
 
+// ActiveWeekdays returns the sorted, de-duplicated set of days of the week
+// (0=Sunday..6=Saturday) a practitioner has at least one active schedule
+// block on -- a coarser, cheaper question than "what slots exist on date X"
+// (ListByPractitioner + slot generation), used to gray out impossible days
+// in a calendar before a specific date is even picked.
+func (s *Store) ActiveWeekdays(ctx context.Context, practitionerID int64) ([]int, error) {
+	rows, err := s.Pool.Query(ctx,
+		`SELECT DISTINCT day_of_week FROM practitioner_schedules
+		 WHERE practitioner_id = $1 AND is_active = true ORDER BY day_of_week`, practitionerID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	out := []int{}
+	for rows.Next() {
+		var d int
+		if err := rows.Scan(&d); err != nil {
+			return nil, err
+		}
+		out = append(out, d)
+	}
+	return out, rows.Err()
+}
+
 func scan(row pgx.Row) (*Schedule, error) {
 	var sc Schedule
 	err := row.Scan(&sc.ID, &sc.PractitionerID, &sc.DayOfWeek, &sc.StartTime, &sc.EndTime,

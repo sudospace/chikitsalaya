@@ -7,18 +7,20 @@ import (
 )
 
 type Config struct {
-	Port        string
-	DatabaseURL string
+	Port            string
+	DatabaseURL     string
+	LocalStorageKey string
 }
 
 func Load() Config {
 	k := koanf.New(".")
-	// Env vars load as-is (no prefix/delimiter mangling needed for our two flat keys).
+	// Env vars load as-is (no prefix/delimiter mangling needed for our flat keys).
 	_ = k.Load(env.Provider(".", env.Opt{}), nil)
 
 	cfg := Config{
-		Port:        k.String("PORT"),
-		DatabaseURL: k.String("DATABASE_URL"),
+		Port:            k.String("PORT"),
+		DatabaseURL:     k.String("DATABASE_URL"),
+		LocalStorageKey: k.String("CHIKITSALAYA_LOCAL_STORAGE_KEY"),
 	}
 	if cfg.Port == "" {
 		cfg.Port = "8090"

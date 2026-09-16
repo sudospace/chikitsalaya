@@ -5,18 +5,24 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/alexedwards/scs/v2"
 	"github.com/go-chi/chi/v5"
 
+	"chikitsalaya/internal/auth"
+	"chikitsalaya/internal/opd/document"
 	"chikitsalaya/internal/web"
 )
 
 type Handlers struct {
-	Store    *Store
-	Renderer *web.Renderer
+	Store           *Store
+	DocumentStore   *document.Store
+	PermissionStore *auth.PermissionStore
+	Sessions        *scs.SessionManager
+	Renderer        *web.Renderer
 }
 
-func NewHandlers(store *Store, renderer *web.Renderer) *Handlers {
-	return &Handlers{Store: store, Renderer: renderer}
+func NewHandlers(store *Store, documentStore *document.Store, permissionStore *auth.PermissionStore, sm *scs.SessionManager, renderer *web.Renderer) *Handlers {
+	return &Handlers{Store: store, DocumentStore: documentStore, PermissionStore: permissionStore, Sessions: sm, Renderer: renderer}
 }
 
 type listData struct {
@@ -73,18 +79,37 @@ func (h *Handlers) Create(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/patients/"+strconv.FormatInt(id, 10), http.StatusSeeOther)
 }
 
+type detailData struct {
+	Patient          *Patient
+	Documents        []document.Document
+	CanEditDocuments bool
+	Error            string
+}
+
 func (h *Handlers) Detail(w http.ResponseWriter, r *http.Request) {
 	id, err := idParam(r)
 	if err != nil {
 		http.NotFound(w, r)
 		return
 	}
-	p, err := h.Store.Get(r.Context(), id)
+	ctx := r.Context()
+	p, err := h.Store.Get(ctx, id)
 	if err != nil {
 		http.NotFound(w, r)
 		return
 	}
-	h.Renderer.Render(w, r, "patient_detail.html", p)
+	docs, err := h.DocumentStore.ListByPatient(ctx, id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	role := auth.CurrentRole(h.Sessions, r)
+	userID := auth.CurrentUserID(h.Sessions, r)
+	canEdit, _ := h.PermissionStore.HasAccess(ctx, role, userID, auth.ModulePatientDocuments, auth.AccessEdit)
+
+	h.Renderer.Render(w, r, "patient_detail.html", detailData{
+		Patient: p, Documents: docs, CanEditDocuments: canEdit, Error: r.URL.Query().Get("error"),
+	})
 }
 
 func (h *Handlers) Edit(w http.ResponseWriter, r *http.Request) {

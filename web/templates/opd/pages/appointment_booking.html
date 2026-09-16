@@ -24,18 +24,26 @@
                 {{end}}
             </select>
         </div>
-        <label data-field>
-            Date
-            <input type="date" name="date" value="{{.Date}}"
-                   hx-get="/appointments/slots" hx-include="#booking-form" hx-target="#slot-grid" hx-trigger="change">
-        </label>
+        <div data-field>
+            <label>Date</label>
+            <div class="availability-date" data-availability-widget
+                 data-weekdays-endpoint="/appointments/available-weekdays" data-practitioner-select="practitioner_id">
+                <button type="button" class="outline availability-date-trigger" data-availability-trigger disabled>Select a practitioner first</button>
+                <input type="hidden" name="date" value="{{.Date}}" data-availability-value
+                       hx-get="/appointments/slots" hx-include="#booking-form" hx-target="#slot-grid" hx-trigger="change">
+                <div class="availability-calendar" data-availability-calendar hidden></div>
+            </div>
+        </div>
     </div>
 
     <div class="hstack">
-        <label data-field>
-            Appointment type
-            <input type="text" name="appointment_type" placeholder="e.g. Consultation, Follow-up">
-        </label>
+        <div data-field>
+            <label>Appointment type</label>
+            <select name="appointment_type" aria-label="Appointment type">
+                <option value="New Consultation">New Consultation</option>
+                <option value="Followup">Followup</option>
+            </select>
+        </div>
     </div>
 
     <label data-field>
