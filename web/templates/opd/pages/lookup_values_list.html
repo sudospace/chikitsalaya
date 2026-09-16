@@ -6,32 +6,30 @@
 </div>
 
 <article class="card">
-    <table>
-        <thead>
-            <tr>
-                <th>Category</th>
-                <th>Value</th>
-                <th>Order</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            {{range .}}
-            <tr>
-                <td><span class="badge badge-muted">{{.Category}}</span></td>
-                <td>{{.Value}}</td>
-                <td>{{.SortOrder}}</td>
-                <td>
-                    <a href="/admin/lookup-values/{{.ID}}/edit" class="button small outline">Edit</a>
-                    <form method="post" action="/admin/lookup-values/{{.ID}}/delete" class="inline-form">
-                        <button type="submit" class="small outline" data-variant="danger">Delete</button>
-                    </form>
-                </td>
-            </tr>
-            {{else}}
-            <tr><td colspan="4">No values yet.</td></tr>
-            {{end}}
-        </tbody>
-    </table>
+    <div class="record-list-header">
+        <span class="record-row-main">Value</span>
+        <span class="record-row-meta">Category &amp; order</span>
+    </div>
+    <div class="record-list">
+        {{range .}}
+        <div class="record-row">
+            <div class="record-row-main">
+                <strong>{{.Value}}</strong>
+            </div>
+            <div class="record-row-meta">
+                <span class="badge badge-muted">{{.Category}}</span>
+                <span>Order {{.SortOrder}}</span>
+            </div>
+            <div class="row-actions">
+                <a href="/admin/lookup-values/{{.ID}}/edit" class="button small outline">Edit</a>
+                <form method="post" action="/admin/lookup-values/{{.ID}}/delete" class="inline-form">
+                    <button type="submit" class="small outline" data-variant="danger">Delete</button>
+                </form>
+            </div>
+        </div>
+        {{else}}
+        <p class="record-empty">No values yet.</p>
+        {{end}}
+    </div>
 </article>
 {{end}}

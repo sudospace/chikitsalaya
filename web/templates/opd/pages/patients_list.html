@@ -11,19 +11,12 @@
            hx-get="/patients/search" hx-trigger="keyup changed delay:300ms, search"
            hx-target="#patient-rows" hx-swap="innerHTML">
 
-    <table class="mt-3">
-        <thead>
-            <tr>
-                <th>MRN</th>
-                <th>Name</th>
-                <th>Sex</th>
-                <th>Phone</th>
-                <th>Blood Group</th>
-            </tr>
-        </thead>
-        <tbody id="patient-rows">
-            {{template "patient_rows" .Patients}}
-        </tbody>
-    </table>
+    <div class="record-list-header mt-3">
+        <span class="record-row-main">Patient</span>
+        <span class="record-row-meta">Sex, phone, blood group</span>
+    </div>
+    <div class="record-list" id="patient-rows">
+        {{template "patient_rows" .Patients}}
+    </div>
 </article>
 {{end}}

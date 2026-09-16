@@ -1,13 +1,17 @@
 {{define "patient_rows"}}
 {{range .}}
-<tr>
-    <td><a href="/patients/{{.ID}}">{{.MRN}}</a></td>
-    <td>{{.FirstName}} {{.LastName}}</td>
-    <td>{{.Sex}}</td>
-    <td>{{.Phone}}</td>
-    <td>{{.BloodGroup}}</td>
-</tr>
+<div class="record-row">
+    <div class="record-row-main">
+        <a href="/patients/{{.ID}}"><strong>{{.MRN}}</strong></a>
+        <span>{{.FirstName}} {{.LastName}}</span>
+    </div>
+    <div class="record-row-meta">
+        {{if .Sex}}<span>{{.Sex}}</span>{{end}}
+        {{if .Phone}}<span>{{.Phone}}</span>{{end}}
+        {{if .BloodGroup}}<span>{{.BloodGroup}}</span>{{end}}
+    </div>
+</div>
 {{else}}
-<tr><td colspan="5">No patients found.</td></tr>
+<p class="record-empty">No patients found.</p>
 {{end}}
 {{end}}

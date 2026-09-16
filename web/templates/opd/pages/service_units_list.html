@@ -6,27 +6,27 @@
 </div>
 
 <article class="card">
-    <table>
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Type</th>
-                <th>Status</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            {{range .}}
-            <tr>
-                <td>{{.Name}}</td>
-                <td>{{.UnitType}}</td>
-                <td>{{if .IsActive}}<span class="badge badge-success">Active</span>{{else}}<span class="badge badge-muted">Inactive</span>{{end}}</td>
-                <td><a href="/admin/service-units/{{.ID}}/edit" class="button small outline">Edit</a></td>
-            </tr>
-            {{else}}
-            <tr><td colspan="4">No service units yet.</td></tr>
-            {{end}}
-        </tbody>
-    </table>
+    <div class="record-list-header">
+        <span class="record-row-main">Service unit</span>
+        <span class="record-row-meta">Type &amp; status</span>
+    </div>
+    <div class="record-list">
+        {{range .}}
+        <div class="record-row">
+            <div class="record-row-main">
+                <strong>{{.Name}}</strong>
+            </div>
+            <div class="record-row-meta">
+                <span>{{.UnitType}}</span>
+                {{if .IsActive}}<span class="badge badge-success">Active</span>{{else}}<span class="badge badge-muted">Inactive</span>{{end}}
+            </div>
+            <div class="row-actions">
+                <a href="/admin/service-units/{{.ID}}/edit" class="button small outline">Edit</a>
+            </div>
+        </div>
+        {{else}}
+        <p class="record-empty">No service units yet.</p>
+        {{end}}
+    </div>
 </article>
 {{end}}

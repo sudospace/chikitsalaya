@@ -30,62 +30,59 @@
 {{if .Practitioner}}
 <article class="card">
     <header><h3>{{.Practitioner.FullName}} — {{.Date}}</h3></header>
-    <table>
-        <thead>
-            <tr>
-                <th>Time</th>
-                <th>Patient</th>
-                <th>Type</th>
-                <th>Status</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            {{range .Appointments}}
-            <tr>
-                <td>{{.ScheduledAt.Format "15:04"}}</td>
-                <td>{{.PatientName}}</td>
-                <td>{{.AppointmentType}}</td>
-                <td>{{template "appointment_status_badge" .Status}}{{if eq .Source "online"}} <small>(online)</small>{{end}}</td>
-                <td>
-                    {{if eq .Status "requested"}}
-                    <form method="post" action="/appointments/{{.ID}}/status" class="inline-form">
-                        <input type="hidden" name="status" value="scheduled">
-                        <button type="submit" class="small">Confirm</button>
-                    </form>
-                    <form method="post" action="/appointments/{{.ID}}/status" class="inline-form">
-                        <input type="hidden" name="status" value="cancelled">
-                        <button type="submit" class="small outline" data-variant="danger">Reject</button>
-                    </form>
-                    {{else if eq .Status "scheduled"}}
-                    <form method="post" action="/appointments/{{.ID}}/status" class="inline-form">
-                        <input type="hidden" name="status" value="checked_in">
-                        <button type="submit" class="small outline">Check In</button>
-                    </form>
-                    <form method="post" action="/appointments/{{.ID}}/status" class="inline-form">
-                        <input type="hidden" name="status" value="cancelled">
-                        <button type="submit" class="small outline" data-variant="danger">Cancel</button>
-                    </form>
-                    <form method="post" action="/appointments/{{.ID}}/status" class="inline-form">
-                        <input type="hidden" name="status" value="no_show">
-                        <button type="submit" class="small outline">No-show</button>
-                    </form>
-                    {{else if eq .Status "checked_in"}}
-                    <form method="post" action="/encounters/from-appointment/{{.ID}}" class="inline-form">
-                        <button type="submit" class="small">Start Consultation</button>
-                    </form>
-                    <form method="post" action="/appointments/{{.ID}}/status" class="inline-form">
-                        <input type="hidden" name="status" value="completed">
-                        <button type="submit" class="small outline">Complete (no consult)</button>
-                    </form>
-                    {{end}}
-                </td>
-            </tr>
-            {{else}}
-            <tr><td colspan="5">No appointments for this day.</td></tr>
-            {{end}}
-        </tbody>
-    </table>
+    <div class="record-list-header">
+        <span class="record-row-main">Patient</span>
+        <span class="record-row-meta">Type &amp; status</span>
+    </div>
+    <div class="record-list">
+        {{range .Appointments}}
+        <div class="record-row">
+            <div class="record-row-main">
+                <strong>{{.ScheduledAt.Format "15:04"}}</strong>
+                <span>{{.PatientName}}</span>
+            </div>
+            <div class="record-row-meta">
+                <span>{{.AppointmentType}}</span>
+                {{template "appointment_status_badge" .Status}}{{if eq .Source "online"}} <small>(online)</small>{{end}}
+            </div>
+            <div class="row-actions">
+                {{if eq .Status "requested"}}
+                <form method="post" action="/appointments/{{.ID}}/status" class="inline-form">
+                    <input type="hidden" name="status" value="scheduled">
+                    <button type="submit" class="small">Confirm</button>
+                </form>
+                <form method="post" action="/appointments/{{.ID}}/status" class="inline-form">
+                    <input type="hidden" name="status" value="cancelled">
+                    <button type="submit" class="small outline" data-variant="danger">Reject</button>
+                </form>
+                {{else if eq .Status "scheduled"}}
+                <form method="post" action="/appointments/{{.ID}}/status" class="inline-form">
+                    <input type="hidden" name="status" value="checked_in">
+                    <button type="submit" class="small outline">Check In</button>
+                </form>
+                <form method="post" action="/appointments/{{.ID}}/status" class="inline-form">
+                    <input type="hidden" name="status" value="cancelled">
+                    <button type="submit" class="small outline" data-variant="danger">Cancel</button>
+                </form>
+                <form method="post" action="/appointments/{{.ID}}/status" class="inline-form">
+                    <input type="hidden" name="status" value="no_show">
+                    <button type="submit" class="small outline">No-show</button>
+                </form>
+                {{else if eq .Status "checked_in"}}
+                <form method="post" action="/encounters/from-appointment/{{.ID}}" class="inline-form">
+                    <button type="submit" class="small">Start Consultation</button>
+                </form>
+                <form method="post" action="/appointments/{{.ID}}/status" class="inline-form">
+                    <input type="hidden" name="status" value="completed">
+                    <button type="submit" class="small outline">Complete (no consult)</button>
+                </form>
+                {{end}}
+            </div>
+        </div>
+        {{else}}
+        <p class="record-empty">No appointments for this day.</p>
+        {{end}}
+    </div>
 </article>
 {{end}}
 {{end}}

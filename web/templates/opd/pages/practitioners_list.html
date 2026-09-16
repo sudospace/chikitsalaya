@@ -6,32 +6,28 @@
 </div>
 
 <article class="card">
-    <table>
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Specialization</th>
-                <th>Phone</th>
-                <th>Status</th>
-            </tr>
-        </thead>
-        <tbody>
-            {{range .Practitioners}}
-            <tr>
-                <td>
-                    <div class="person-cell">
-                        <span class="avatar">{{printf "%.1s" .FullName}}</span>
-                        <a href="/practitioners/{{.ID}}">{{.FullName}}</a>
-                    </div>
-                </td>
-                <td>{{if .Specialization}}{{.Specialization}}{{else}}—{{end}}</td>
-                <td>{{if .Phone}}{{.Phone}}{{else}}—{{end}}</td>
-                <td>{{if .IsActive}}<span class="badge badge-success">Active</span>{{else}}<span class="badge badge-muted">Inactive</span>{{end}}</td>
-            </tr>
-            {{else}}
-            <tr><td colspan="4">No practitioners yet.</td></tr>
-            {{end}}
-        </tbody>
-    </table>
+    <div class="record-list-header">
+        <span class="record-row-main">Practitioner</span>
+        <span class="record-row-meta">Specialization, phone, status</span>
+    </div>
+    <div class="record-list">
+        {{range .Practitioners}}
+        <div class="record-row">
+            <div class="record-row-main">
+                <div class="person-cell">
+                    <span class="avatar">{{printf "%.1s" .FullName}}</span>
+                    <a href="/practitioners/{{.ID}}">{{.FullName}}</a>
+                </div>
+            </div>
+            <div class="record-row-meta">
+                {{if .Specialization}}<span>{{.Specialization}}</span>{{end}}
+                {{if .Phone}}<span>{{.Phone}}</span>{{end}}
+                {{if .IsActive}}<span class="badge badge-success">Active</span>{{else}}<span class="badge badge-muted">Inactive</span>{{end}}
+            </div>
+        </div>
+        {{else}}
+        <p class="record-empty">No practitioners yet.</p>
+        {{end}}
+    </div>
 </article>
 {{end}}

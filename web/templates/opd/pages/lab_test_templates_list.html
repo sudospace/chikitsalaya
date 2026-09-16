@@ -6,31 +6,29 @@
 </div>
 
 <article class="card">
-    <table>
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Department</th>
-                <th>Sample type</th>
-                <th>Price</th>
-                <th>Status</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            {{range .}}
-            <tr>
-                <td>{{.Name}}</td>
-                <td>{{.Department}}</td>
-                <td>{{.SampleType}}</td>
-                <td>{{if .Price}}{{.Price}}{{else}}—{{end}}</td>
-                <td>{{if .IsActive}}<span class="badge badge-success">Active</span>{{else}}<span class="badge badge-muted">Inactive</span>{{end}}</td>
-                <td><a href="/admin/lab-tests/{{.ID}}/edit" class="button small outline">Edit</a></td>
-            </tr>
-            {{else}}
-            <tr><td colspan="6">No lab tests yet.</td></tr>
-            {{end}}
-        </tbody>
-    </table>
+    <div class="record-list-header">
+        <span class="record-row-main">Lab test</span>
+        <span class="record-row-meta">Department, sample type, price, status</span>
+    </div>
+    <div class="record-list">
+        {{range .}}
+        <div class="record-row">
+            <div class="record-row-main">
+                <strong>{{.Name}}</strong>
+            </div>
+            <div class="record-row-meta">
+                {{if .Department}}<span>{{.Department}}</span>{{end}}
+                {{if .SampleType}}<span>{{.SampleType}}</span>{{end}}
+                <span>Price {{if .Price}}{{.Price}}{{else}}—{{end}}</span>
+                {{if .IsActive}}<span class="badge badge-success">Active</span>{{else}}<span class="badge badge-muted">Inactive</span>{{end}}
+            </div>
+            <div class="row-actions">
+                <a href="/admin/lab-tests/{{.ID}}/edit" class="button small outline">Edit</a>
+            </div>
+        </div>
+        {{else}}
+        <p class="record-empty">No lab tests yet.</p>
+        {{end}}
+    </div>
 </article>
 {{end}}
