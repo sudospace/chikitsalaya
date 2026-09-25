@@ -82,7 +82,13 @@ Full step-by-step usage instructions — for every role, every screen — live i
 
 ## Data & backups
 
-Postgres data lives in the `chikitsalaya_pgdata` Docker volume; uploaded logos and
-letterheads live in `chikitsalaya_uploads`. Back up both if you care about not losing
-anything — `docker compose down` alone doesn't touch volumes, but be deliberate before
-running anything with `-v`.
+Postgres data lives in the `chikitsalaya_pgdata` Docker volume; uploaded logos,
+letterheads, and patient documents live in `chikitsalaya_uploads`. Back up both if you
+care about not losing anything — `docker compose down` alone doesn't touch volumes, but
+be deliberate before running anything with `-v`.
+
+**Back up your `.env` file too** (created automatically on first run, gitignored by
+design). It holds `CHIKITSALAYA_LOCAL_STORAGE_KEY`, the encryption key for every patient
+document stored under the "local" storage backend — lose that key and those files are
+permanently unrecoverable, even though the encrypted bytes are still sitting in the
+volume.

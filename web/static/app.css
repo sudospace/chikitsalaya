@@ -1117,6 +1117,7 @@ table td:has(> input[type="radio"]) {
     border-radius: var(--radius-medium);
     box-shadow: var(--shadow-large);
     padding: 0.75rem;
+    overflow: hidden;
 }
 
 .availability-calendar-header {
@@ -1149,14 +1150,22 @@ table td:has(> input[type="radio"]) {
 }
 
 .availability-calendar-weekday {
+    min-width: 0;
     text-align: center;
     font-size: var(--text-8);
     color: var(--muted-foreground);
     padding-block-end: 0.25rem;
 }
 
+/* Grid items (like the report tiles elsewhere) default to a min-width
+   based on their content -- a bare <button> picks up Oat's own default
+   button padding, which is wider than a 7-column share of this fixed
+   18rem popup, so without this every cell but the first few forces its
+   column wider and the grid overflows past the popup's rounded border. */
 .availability-calendar-day {
     aspect-ratio: 1;
+    min-width: 0;
+    padding: 0;
     display: flex;
     align-items: center;
     justify-content: center;
